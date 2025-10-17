@@ -1,107 +1,227 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nimbuste2000</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>nimbuste2000 — Cyber Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(to bottom, #1a1a2e, #16213e);
-            color: #eee;
-            padding: 60px 20px;
-            min-height: 100vh;
-        }
+  <style>
+    :root{
+      --bg:#05070a;
+      --card:#0d1117;
+      --muted:#8ca1b3;
+      --text:#eaf2ff;
+      --brand:#00b4ff;
+      --brand-600:#007acc;
+      --accent:#23d2ff;
+      --error:#ff4e50;
+      --shadow: 0 12px 40px rgba(0,0,0,.45);
+      --radius: 16px;
+      --radius-lg: 22px;
+      --ring: 0 0 0 2px rgba(0,180,255,.3), 0 8px 30px rgba(0,180,255,.15);
+      --transition: 300ms cubic-bezier(.2,.7,.2,1);
+    }
 
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-        }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 90% -10%, #0a1a2f 0%, transparent 60%),
+        radial-gradient(1000px 500px at -10% 10%, #001020 0%, transparent 60%),
+        var(--bg);
+      line-height:1.6;
+      overflow-x:hidden;
+      -webkit-font-smoothing: antialiased;
+    }
 
-        h1 {
-            font-size: 48px;
-            margin-bottom: 40px;
-            color: #fff;
-        }
+    /* Header */
+    header.hero{
+      position:relative;
+      padding:72px 20px 56px;
+      text-align:center;
+    }
+    .hero .avatar{
+      width:128px; height:128px; border-radius:50%;
+      border:5px solid rgba(0,180,255,.75);
+      box-shadow: var(--ring);
+      display:block; margin:0 auto 18px; object-fit:cover;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .hero .avatar:hover{ transform: translateY(-2px) scale(1.02); box-shadow: 0 0 20px rgba(0,180,255,.45), 0 0 60px rgba(0,180,255,.25); }
+    .hero h1{ font-size: clamp(28px, 4vw, 44px); margin: 6px 0; letter-spacing:.4px; color: var(--brand); }
+    .hero p{ color:var(--muted); margin:0; font-size: clamp(14px, 2vw, 18px) }
 
-        h2 {
-            font-size: 28px;
-            margin: 40px 0 20px 0;
-            color: #4a9eff;
-        }
+    /* Sections */
+    .container{ width:min(980px, 92%); margin: 0 auto; }
+    section.card{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,0)) , var(--card);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow);
+      padding:28px; margin: 22px auto;
+      backdrop-filter: blur(6px);
+    }
+    section.card h2{ color:var(--brand); margin: 0 0 10px; letter-spacing:.2px; text-shadow:0 0 10px rgba(0,180,255,.3); }
+    section.card ul{ padding-left: 18px; margin: 8px 0 0 }
 
-        p, li {
-            font-size: 18px;
-            line-height: 1.8;
-            margin-bottom: 15px;
-        }
+    /* Links */
+    a{ color:var(--accent); text-decoration: none; }
+    a:hover{ text-decoration: underline }
 
-        ul {
-            list-style: none;
-            padding-left: 0;
-        }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+      background:#0c141d; border:1px solid rgba(255,255,255,.06); border-radius:999px;
+      transition: transform var(--transition), background var(--transition), border-color var(--transition);
+    }
+    .chip:hover{ transform: translateY(-1px); background:#12283c; border-color:rgba(0,180,255,.4); }
 
-        li {
-            padding-left: 30px;
-            position: relative;
-        }
+    /* Reveal on scroll */
+    .reveal{ opacity:0; transform: translateY(24px) scale(.98); filter: blur(3px); transition: opacity var(--transition), transform var(--transition), filter var(--transition); }
+    .reveal.in{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
 
-        li:before {
-            content: "→";
-            position: absolute;
-            left: 0;
-            color: #4a9eff;
-        }
+    /* Buttons */
+    .btn{
+      cursor:pointer; border:none; border-radius:12px; padding:10px 16px;
+      font-weight:600; letter-spacing:.3px; transition: transform var(--transition), box-shadow var(--transition), background var(--transition), opacity var(--transition);
+    }
+    .btn:focus{ outline:none; box-shadow: var(--ring); }
+    .btn-primary{ background: linear-gradient(180deg, var(--brand), var(--brand-600)); color:#00131d; }
+    .btn-primary:hover{ transform: translateY(-1px); box-shadow:0 0 12px rgba(0,180,255,.6); }
+    .btn-muted{ background:#111924; color:var(--text); border:1px solid rgba(255,255,255,.06); }
+    .btn-muted:hover{ background:#182433 }
+    .btn-danger{ background: linear-gradient(180deg, #ff726f, #ef5350); color:white; }
 
-        a {
-            color: #4a9eff;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
+    /* Project list */
+    .projects-list li{ margin: 10px 0 }
 
-        a:hover {
-            color: #fff;
-        }
+    /* Popups */
+    .overlay{ position:fixed; inset:0; background: rgba(0,0,0,.65); opacity:0; visibility:hidden; transition: opacity var(--transition), visibility var(--transition); z-index: 40; }
+    .overlay.show{ opacity:1; visibility:visible }
 
-        .emoji {
-            font-style: normal;
-        }
-    </style>
+    .modal{ position: fixed; inset: 0; display: grid; place-items: center; z-index: 50; pointer-events:none; }
+    .modal[aria-hidden="true"]{ display:none }
+
+    .modal__panel{
+      width:min(560px, 92%);
+      background: linear-gradient(180deg, rgba(0,20,40,.85), rgba(0,10,20,.95));
+      border:1px solid rgba(0,180,255,.2);
+      border-radius: var(--radius);
+      box-shadow: 0 0 30px rgba(0,180,255,.25);
+      padding: 22px;
+      transform: translateY(12px) scale(.98);
+      opacity:0;
+      transition: transform var(--transition), opacity var(--transition);
+    }
+
+    .modal.show .modal__panel{ transform: translateY(0) scale(1); opacity:1 }
+
+    .modal__header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px }
+    .modal__title{ margin:0; color:var(--brand) }
+    .modal__body{ color:var(--text) }
+    .modal__footer{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px }
+
+    @media (prefers-reduced-motion: reduce){
+      .reveal, .modal__panel, .avatar{ transition:none; transform:none!important; }
+      .overlay{ transition:none }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>👋 Salut !</h1>
+  <header class="hero">
+    <img src="https://avatars.githubusercontent.com/u/000000?v=4" alt="Avatar de nimbuste2000" class="avatar" width="128" height="128" />
+    <h1>nimbuste2000</h1>
+    <p>Développeur Python et passionné de cybersécurité</p>
+  </header>
 
-        <h2>Présentation</h2>
-        <p>
-            Salut, moi c'est <strong>[Nimbuste2000]</strong>. 
-            J'aime la radio et tout ce petit monde informatique qui pour moi est génial ^^
-        </p>
+  <main class="container">
+    <section id="about" class="card reveal" data-reveal>
+      <h2>Présentation</h2>
+      <p>
+        Salut, moi c’est <strong>nimbuste2000</strong>. J’adore coder des outils utiles et explorer les mystères du code et de la sécurité informatique.
+      </p>
+      <p>
+        Vous pouvez aussi me retrouver sous le pseudo <button class="btn btn-muted" data-open="alias-modal" aria-haspopup="dialog" aria-controls="alias-modal">@nimbus_dev</button>.
+      </p>
+    </section>
 
-        <h2>Compétences</h2>
-        <ul>
-            <li>Azure AD et tout l'écosystème Windows</li>
-            <li>OSINT Investigator</li>
-            <li>En cours d'apprentissage : React, Node.js,</li>
-        </ul>
+    <section id="skills" class="card reveal" data-reveal>
+      <h2>Compétences</h2>
+      <ul>
+        <li>Python, HTML, CSS, JavaScript</li>
+        <li>Cybersécurité & automatisation</li>
+        <li>Exploration des API et scripts réseau</li>
+      </ul>
+    </section>
 
-        <h2>Projets</h2>
-        <ul>
-            <li><a href="#">Projet 1 - Site web personnel</a></li>
-            <li><a href="#">Projet 2 - Logiciel de radio </a></li>
-            <li><a href="#">Projet 3 - créer un système d'exploitation ?</a></li>
-        </ul>
+    <section id="projects" class="card reveal" data-reveal>
+      <h2>Projets</h2>
+      <ul class="projects-list">
+        <li>
+          <a href="#" class="chip" data-open="terminaltool-modal"><span>💻</span><span>TerminalTool — utilitaire cyber bleu</span></a>
+        </li>
+        <li>
+          <a class="chip" href="#"><span>🧰</span><span>Nimbus Suite — outils Python</span></a>
+        </li>
+      </ul>
+    </section>
 
-        <h2>Contact</h2>
-        <p>
-            Pour me contacter : <a href="mailto:nimbuste2000@gmail.com">nimbuste2000@gmail.com</a>
-        </p>
+    <section id="contact" class="card reveal" data-reveal>
+      <h2>Contact</h2>
+      <p>📧 <strong>nimbuste2000@proton.me</strong></p>
+    </section>
+  </main>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <!-- Alias modal -->
+  <div class="modal" id="alias-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="alias-title">
+    <div class="modal__panel" role="document">
+      <div class="modal__header">
+        <h3 class="modal__title" id="alias-title">@nimbus_dev</h3>
+        <button class="btn btn-muted" data-close>✕</button>
+      </div>
+      <div class="modal__body">
+        <p>C’est mon autre pseudo utilisé sur certaines plateformes. Même personne, juste un autre alias 😄</p>
+      </div>
     </div>
-</body>
-</html>
+  </div>
+
+  <!-- TerminalTool modal -->
+  <div class="modal" id="terminaltool-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tt-title">
+    <div class="modal__panel" role="document">
+      <div class="modal__header">
+        <h3 class="modal__title" id="tt-title">TerminalTool</h3>
+        <button class="btn btn-muted" data-close>✕</button>
+      </div>
+      <div class="modal__body">
+        <p>Outil de ligne de commande open-source pour automatiser des analyses réseau et des tâches devops.</p>
+        <a href="#" class="btn btn-primary">Voir le projet</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const qs = (sel, el=document) => el.querySelector(sel);
+    const qsa = (sel, el=document) => [...el.querySelectorAll(sel)];
+
+    const revealEls = qsa('[data-reveal]');
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      })
+    }, { threshold: .12 });
+    revealEls.forEach(el=> io.observe(el));
+
+    const overlay = qs('#overlay');
+    let lastFocused = null;
+    let removeTrap = null;
+
+    function trapFocus(modal){
+      const nodes = qsa('a
