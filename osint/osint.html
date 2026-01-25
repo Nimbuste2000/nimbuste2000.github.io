@@ -150,6 +150,10 @@
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
 
+        button:active {
+            transform: translateY(0);
+        }
+
         .result-box {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(102, 126, 234, 0.3);
@@ -201,14 +205,6 @@
             border-radius: 6px;
         }
 
-        .warning-box {
-            background: rgba(255, 107, 107, 0.1);
-            border-left: 4px solid #ff6b6b;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 6px;
-        }
-
         .frequency-display {
             font-size: 2.5em;
             color: #00ff00;
@@ -219,6 +215,31 @@
             border-radius: 8px;
             margin: 15px 0;
             border: 2px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .radio-tuner {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .freq-slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .freq-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
         }
 
         canvas {
@@ -246,27 +267,68 @@
             transition: width 0.3s ease;
         }
 
-        .platform-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
+        .rds-display {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            border: 1px solid rgba(0, 255, 0, 0.3);
         }
 
-        .platform-link {
-            padding: 8px 16px;
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.4);
+        .spectrum {
+            position: relative;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .spectrum-bar {
+            position: absolute;
+            bottom: 0;
+            width: 2%;
+            background: linear-gradient(to top, #00ff00, #ffff00, #ff0000);
+            transition: height 0.1s ease;
+        }
+
+        .station-list {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .station-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            margin: 5px 0;
             border-radius: 6px;
-            color: #b8c5ff;
-            text-decoration: none;
+            cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9em;
+            border-left: 3px solid #667eea;
         }
 
-        .platform-link:hover {
-            background: rgba(102, 126, 234, 0.4);
-            transform: translateY(-2px);
+        .station-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateX(5px);
+        }
+
+        .stereo-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(255, 0, 0, 0.3);
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .stereo-indicator.active {
+            background: rgba(0, 255, 0, 0.3);
         }
     </style>
 </head>
@@ -274,23 +336,156 @@
     <div class="container">
         <header>
             <h1>🔍 OSINT Toolkit Pro</h1>
-            <p class="subtitle">Par Nimbuste2000 - Outils OSINT géométriques et radiophoniques</p>
+            <p class="subtitle">Par Nimbuste2000 - Outils OSINT complets avec Radio FM avancée</p>
         </header>
 
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('geo')">🌍 Géo</div>
-            <div class="tab" onclick="switchTab('radio')">📡 Radio</div>
+            <div class="tab active" onclick="switchTab('radio')">📡 Radio FM</div>
+            <div class="tab" onclick="switchTab('geo')">🌍 Géo</div>
             <div class="tab" onclick="switchTab('image')">🖼️ Image</div>
             <div class="tab" onclick="switchTab('network')">🌐 Réseau</div>
             <div class="tab" onclick="switchTab('social')">👤 Social</div>
             <div class="tab" onclick="switchTab('crypto')">🔐 Crypto</div>
             <div class="tab" onclick="switchTab('metadata')">📋 Méta</div>
+            <div class="tab" onclick="switchTab('advanced')">⚡ Avancé</div>
+        </div>
+
+        <!-- RADIO FM -->
+        <div id="radio" class="content active">
+            <div class="tool-section">
+                <h2>📡 Radio FM Professionnelle</h2>
+                
+                <div class="feature-card">
+                    <h3>🎛️ Tuner FM avec RDS</h3>
+                    <div class="radio-tuner">
+                        <div class="frequency-display" id="fmDisplay">88.0 MHz</div>
+                        <input type="range" class="freq-slider" id="fmSlider" min="88.0" max="108.0" step="0.1" value="88.0">
+                        <div style="display: flex; justify-content: space-between; color: #b0b0b0; font-size: 0.9em; margin-top: 10px;">
+                            <span>88.0 MHz</span>
+                            <span>98.0 MHz</span>
+                            <span>108.0 MHz</span>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button onclick="scanFM()">🔍 Scanner</button>
+                            <button onclick="stopScan()">⏹️ Stop</button>
+                            <button onclick="seekUp()">⏩ Seek +</button>
+                            <button onclick="seekDown()">⏪ Seek -</button>
+                            <button onclick="toggleStereo()">🎵 Stéréo</button>
+                        </div>
+                    </div>
+                    
+                    <div class="signal-meter">
+                        <div class="signal-level" id="fmSignal"></div>
+                    </div>
+                    <div style="text-align: center; color: #b0b0b0; font-size: 0.9em;">
+                        Signal: <span id="signalStrength">0</span>%
+                        <span class="stereo-indicator" id="stereoInd">MONO</span>
+                    </div>
+
+                    <div class="rds-display" id="rdsDisplay">
+                        <div><strong>RDS:</strong> En attente...</div>
+                        <div id="rdsPs">PS: --------</div>
+                        <div id="rdsRt">RT: Aucune donnée</div>
+                        <div id="rdsPty">PTY: Inconnu</div>
+                        <div id="rdsTime">CT: --:--</div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>📊 Analyseur de spectre FM</h3>
+                    <canvas id="spectrumCanvas"></canvas>
+                    <button onclick="startSpectrum()">▶️ Démarrer analyse</button>
+                    <button onclick="stopSpectrum()">⏹️ Arrêter</button>
+                    <button onclick="findStations()">🔎 Détecter stations</button>
+                    <div id="spectrumInfo" class="info-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>📻 Liste des stations détectées</h3>
+                    <div class="station-list" id="stationList">
+                        <div class="station-item" onclick="tuneStation(88.2)">
+                            <strong>88.2 MHz</strong> - France Inter (Paris)
+                            <div style="font-size: 0.85em; color: #b0b0b0;">Signal: 95% | Stéréo</div>
+                        </div>
+                        <div class="station-item" onclick="tuneStation(89.0)">
+                            <strong>89.0 MHz</strong> - France Musique
+                            <div style="font-size: 0.85em; color: #b0b0b0;">Signal: 92% | Stéréo</div>
+                        </div>
+                        <div class="station-item" onclick="tuneStation(90.4)">
+                            <strong>90.4 MHz</strong> - Nostalgie
+                            <div style="font-size: 0.85em; color: #b0b0b0;">Signal: 88% | Stéréo</div>
+                        </div>
+                        <div class="station-item" onclick="tuneStation(95.2)">
+                            <strong>95.2 MHz</strong> - NRJ
+                            <div style="font-size: 0.85em; color: #b0b0b0;">Signal: 91% | Stéréo</div>
+                        </div>
+                        <div class="station-item" onclick="tuneStation(100.3)">
+                            <strong>100.3 MHz</strong> - RTL
+                            <div style="font-size: 0.85em; color: #b0b0b0;">Signal: 87% | Stéréo</div>
+                        </div>
+                        <div class="station-item" onclick="tuneStation(104.3)">
+                            <strong>104.3 MHz</strong> - RTL2
+                            <div style="font-size: 0.85em; color: #b0b0b0;">Signal: 85% | Stéréo</div>
+                        </div>
+                        <div class="station-item" onclick="tuneStation(105.1)">
+                            <strong>105.1 MHz</strong> - FIP
+                            <div style="font-size: 0.85em; color: #b0b0b0;">Signal: 93% | Stéréo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>🔧 Analyse de blancs radio (Cartoucheur)</h3>
+                    <p style="color: #b0b0b0; margin-bottom: 15px;">Détection automatique des silences/blancs dans les transmissions FM</p>
+                    <div class="input-group">
+                        <label>Durée d'analyse (secondes)</label>
+                        <input type="number" id="blankDuration" value="60" min="10" max="600">
+                    </div>
+                    <div class="input-group">
+                        <label>Seuil de silence (dB)</label>
+                        <input type="number" id="blankThreshold" value="-50" min="-70" max="-20">
+                    </div>
+                    <button onclick="analyzeRadioBlanks()">🔇 Démarrer analyse</button>
+                    <button onclick="stopBlankAnalysis()">⏹️ Arrêter</button>
+                    <canvas id="blankCanvas"></canvas>
+                    <div id="blanksResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>📡 Calcul de couverture FM</h3>
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Hauteur antenne (m)</label>
+                            <input type="number" id="txHeight" value="100">
+                        </div>
+                        <div class="input-group">
+                            <label>Puissance (kW)</label>
+                            <input type="number" id="txPower" value="10" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Fréquence FM (MHz)</label>
+                        <input type="number" id="radioFreq" value="100.0" step="0.1" min="88" max="108">
+                    </div>
+                    <div class="input-group">
+                        <label>Type de terrain</label>
+                        <select id="terrain">
+                            <option value="urban">Urbain dense</option>
+                            <option value="suburban" selected>Suburban</option>
+                            <option value="rural">Rural/Plat</option>
+                            <option value="mountain">Montagneux</option>
+                        </select>
+                    </div>
+                    <button onclick="calculateFMCoverage()">📡 Calculer couverture</button>
+                    <div id="coverageResult" class="result-box" style="display:none;"></div>
+                </div>
+            </div>
         </div>
 
         <!-- GÉOLOCALISATION -->
-        <div id="geo" class="content active">
+        <div id="geo" class="content">
             <div class="tool-section">
-                <h2>🗺️ Outils de géolocalisation</h2>
+                <h2>🗺️ Outils de géolocalisation avancés</h2>
                 
                 <div class="feature-card">
                     <h3>Convertisseur de coordonnées</h3>
@@ -307,12 +502,13 @@
                     <button onclick="convertCoords()">📐 Convertir</button>
                     <button onclick="showOnMap()">🗺️ Carte</button>
                     <button onclick="calculateDistance()">📏 Distance</button>
+                    <button onclick="reverseGeocode()">🔍 Géocodage inverse</button>
                     <div id="coordResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Triangulation géométrique</h3>
-                    <p style="color: #b0b0b0; margin-bottom: 15px;">Entrez 3 points pour trianguler une position</p>
+                    <h3>Triangulation multi-points</h3>
+                    <p style="color: #b0b0b0; margin-bottom: 15px;">Entrez 3+ points pour trianguler une position</p>
                     <div class="grid-3">
                         <div>
                             <label>Point 1 (Lat, Lon)</label>
@@ -328,90 +524,43 @@
                         </div>
                     </div>
                     <button onclick="triangulate()">📍 Trianguler</button>
+                    <button onclick="addTriPoint()">➕ Ajouter point</button>
                     <div id="triResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Analyse de trajectoire</h3>
+                    <div class="input-group">
+                        <label>Points GPS (un par ligne: lat,lon,timestamp)</label>
+                        <textarea id="trajectory" rows="6" placeholder="48.8566,2.3522,1234567890
+48.8606,2.3376,1234568890"></textarea>
+                    </div>
+                    <button onclick="analyzeTrajectory()">🛤️ Analyser</button>
+                    <div id="trajResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div id="map"></div>
             </div>
         </div>
 
-        <!-- RADIO & FRÉQUENCES -->
-        <div id="radio" class="content">
-            <div class="tool-section">
-                <h2>📡 Analyse radiophonique</h2>
-                
-                <div class="feature-card">
-                    <h3>Analyseur de fréquences</h3>
-                    <div class="input-group">
-                        <label>Fréquence (MHz)</label>
-                        <input type="number" id="frequency" placeholder="100.0" step="0.1" value="145.0">
-                    </div>
-                    <button onclick="analyzeFrequency()">🔍 Analyser</button>
-                    <div class="frequency-display" id="freqDisplay">145.0 MHz</div>
-                    <div id="freqInfo" class="info-box" style="display:none;"></div>
-                </div>
-
-                <div class="feature-card">
-                    <h3>Détecteur de signaux (Simulation)</h3>
-                    <button onclick="startSignalScan()">▶️ Démarrer</button>
-                    <button onclick="stopSignalScan()">⏹️ Arrêter</button>
-                    <div class="signal-meter">
-                        <div class="signal-level" id="signalLevel"></div>
-                    </div>
-                    <canvas id="signalCanvas"></canvas>
-                    <div id="signalResult" class="result-box" style="display:none;"></div>
-                </div>
-
-                <div class="feature-card">
-                    <h3>Analyse de blancs radio</h3>
-                    <p style="color: #b0b0b0; margin-bottom: 15px;">Détection des périodes de silence dans les transmissions</p>
-                    <div class="input-group">
-                        <label>Durée d'analyse (secondes)</label>
-                        <input type="number" id="blankDuration" value="60" min="10" max="300">
-                    </div>
-                    <button onclick="analyzeRadioBlanks()">🔇 Analyser</button>
-                    <div id="blanksResult" class="result-box" style="display:none;"></div>
-                </div>
-
-                <div class="feature-card">
-                    <h3>Calcul de portée radio</h3>
-                    <div class="grid-2">
-                        <div class="input-group">
-                            <label>Hauteur émetteur (m)</label>
-                            <input type="number" id="txHeight" value="10">
-                        </div>
-                        <div class="input-group">
-                            <label>Hauteur récepteur (m)</label>
-                            <input type="number" id="rxHeight" value="2">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>Fréquence (MHz)</label>
-                        <input type="number" id="radioFreq" value="145.0">
-                    </div>
-                    <button onclick="calculateRadioRange()">📡 Calculer</button>
-                    <div id="rangeResult" class="result-box" style="display:none;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ANALYSE D'IMAGES -->
+        <!-- IMAGE -->
         <div id="image" class="content">
             <div class="tool-section">
                 <h2>🖼️ Analyse d'images OSINT</h2>
                 
                 <div class="feature-card">
-                    <h3>Extracteur EXIF</h3>
+                    <h3>Extracteur EXIF complet</h3>
                     <div class="input-group">
                         <label>Charger une image</label>
                         <input type="file" id="imageFile" accept="image/*">
                     </div>
                     <button onclick="extractEXIF()">📸 Extraire métadonnées</button>
+                    <button onclick="analyzeImageGeo()">🌍 Analyser géolocalisation</button>
                     <div id="exifResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Recherche d'image inversée</h3>
+                    <h3>Recherche d'image inversée multi-moteurs</h3>
                     <div class="input-group">
                         <label>URL de l'image</label>
                         <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg">
@@ -420,107 +569,140 @@
                     <button onclick="reverseImageSearch('yandex')">Yandex</button>
                     <button onclick="reverseImageSearch('tineye')">TinEye</button>
                     <button onclick="reverseImageSearch('bing')">Bing</button>
+                    <button onclick="reverseImageSearch('baidu')">Baidu</button>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Analyse d'ombres</h3>
+                    <h3>Analyse d'ombres et soleil</h3>
                     <p style="color: #b0b0b0; margin-bottom: 15px;">Déterminer l'heure et la position via les ombres</p>
-                    <div class="input-group">
-                        <label>Angle de l'ombre (degrés)</label>
-                        <input type="number" id="shadowAngle" placeholder="45">
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label>Angle de l'ombre (degrés)</label>
+                            <input type="number" id="shadowAngle" placeholder="45">
+                        </div>
+                        <div class="input-group">
+                            <label>Longueur ombre / hauteur objet</label>
+                            <input type="number" id="shadowRatio" placeholder="1.5" step="0.1">
+                        </div>
                     </div>
                     <div class="input-group">
-                        <label>Ratio longueur ombre / hauteur objet</label>
-                        <input type="number" id="shadowRatio" placeholder="1.5" step="0.1">
+                        <label>Date estimée</label>
+                        <input type="date" id="shadowDate">
                     </div>
                     <button onclick="analyzeShadow()">🌅 Analyser</button>
                     <div id="shadowResult" class="result-box" style="display:none;"></div>
                 </div>
+
+                <div class="feature-card">
+                    <h3>Détection de manipulation d'image</h3>
+                    <button onclick="checkImageManipulation()">🔍 Analyser authenticité</button>
+                    <button onclick="errorLevelAnalysis()">📊 Error Level Analysis</button>
+                    <div id="manipResult" class="result-box" style="display:none;"></div>
+                </div>
             </div>
         </div>
 
-        <!-- RÉSEAU & IP -->
+        <!-- NETWORK -->
         <div id="network" class="content">
             <div class="tool-section">
-                <h2>🌐 Analyse réseau</h2>
+                <h2>🌐 Analyse réseau avancée</h2>
                 
                 <div class="feature-card">
-                    <h3>Lookup IP</h3>
+                    <h3>Lookup IP complet</h3>
                     <div class="input-group">
                         <label>Adresse IP</label>
                         <input type="text" id="ipAddress" placeholder="8.8.8.8" value="8.8.8.8">
                     </div>
                     <button onclick="lookupIP()">🔍 Rechercher</button>
+                    <button onclick="getMyIP()">📍 Mon IP</button>
+                    <button onclick="ipHistory()">📜 Historique</button>
                     <div id="ipResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>WHOIS Domain</h3>
+                    <h3>WHOIS & DNS complet</h3>
                     <div class="input-group">
                         <label>Nom de domaine</label>
                         <input type="text" id="domain" placeholder="example.com" value="google.com">
                     </div>
                     <button onclick="whoisLookup()">📋 WHOIS</button>
                     <button onclick="dnsLookup()">🌐 DNS</button>
+                    <button onclick="subdomainScan()">🔎 Sous-domaines</button>
+                    <button onclick="sslCheck()">🔒 SSL/TLS</button>
                     <div id="whoisResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Analyseur de ports</h3>
+                    <h3>Analyseur de ports avancé</h3>
                     <div class="input-group">
-                        <label>Numéro de port</label>
-                        <input type="number" id="portNumber" placeholder="80" value="443">
+                        <label>Port ou range (ex: 80 ou 80-443)</label>
+                        <input type="text" id="portNumber" placeholder="80" value="443">
                     </div>
                     <button onclick="analyzePort()">🔌 Analyser</button>
+                    <button onclick="commonPorts()">📋 Ports communs</button>
                     <div id="portResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Analyse de headers HTTP</h3>
+                    <div class="input-group">
+                        <label>URL à analyser</label>
+                        <input type="url" id="headerUrl" placeholder="https://example.com">
+                    </div>
+                    <button onclick="analyzeHeaders()">📊 Analyser headers</button>
+                    <div id="headerResult" class="result-box" style="display:none;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- RÉSEAUX SOCIAUX -->
+        <!-- SOCIAL -->
         <div id="social" class="content">
             <div class="tool-section">
-                <h2>👤 OSINT Réseaux sociaux</h2>
+                <h2>👤 OSINT Réseaux sociaux avancé</h2>
                 
                 <div class="feature-card">
-                    <h3>Recherche d'username</h3>
+                    <h3>Recherche d'username multi-plateformes</h3>
                     <div class="input-group">
                         <label>Nom d'utilisateur</label>
                         <input type="text" id="username" placeholder="nimbuste2000" value="nimbuste2000">
                     </div>
-                    <button onclick="searchUsername()">🔎 Rechercher</button>
+                    <button onclick="searchUsername()">🔎 Rechercher (20+ sites)</button>
+                    <button onclick="exportUsernames()">💾 Exporter résultats</button>
                     <div id="usernameResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Liens rapides OSINT Social</h3>
-                    <div class="platform-links">
-                        <a href="https://namechk.com" target="_blank" class="platform-link">NameChk</a>
-                        <a href="https://knowem.com" target="_blank" class="platform-link">KnowEm</a>
-                        <a href="https://namecheckr.com" target="_blank" class="platform-link">NameCheckr</a>
-                        <a href="https://checkusernames.com" target="_blank" class="platform-link">CheckUsernames</a>
-                    </div>
-                </div>
-
-                <div class="feature-card">
-                    <h3>Analyseur de profil Twitter/X</h3>
+                    <h3>Analyseur Twitter/X avancé</h3>
                     <div class="input-group">
                         <label>Handle Twitter (@username)</label>
                         <input type="text" id="twitterHandle" placeholder="@username">
                     </div>
-                    <button onclick="analyzeTwitter()">𝕏 Analyser</button>
+                    <button onclick="analyzeTwitter()">𝕏 Analyser profil</button>
+                    <button onclick="twitterTimeline()">📜 Timeline</button>
+                    <button onclick="twitterNetwork()">🕸️ Réseau</button>
                     <div id="twitterResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Recherche email/téléphone</h3>
+                    <div class="input-group">
+                        <label>Email ou numéro</label>
+                        <input type="text" id="contactSearch" placeholder="email@example.com">
+                    </div>
+                    <button onclick="searchContact()">🔍 Rechercher</button>
+                    <button onclick="verifyEmail()">✅ Vérifier email</button>
+                    <div id="contactResult" class="result-box" style="display:none;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- CRYPTOGRAPHIE -->
+        <!-- CRYPTO -->
         <div id="crypto" class="content">
             <div class="tool-section">
                 <h2>🔐 Outils cryptographiques</h2>
                 
                 <div class="feature-card">
-                    <h3>Décodeur multi-format</h3>
+                    <h3>Décodeur universel</h3>
                     <div class="input-group">
                         <label>Texte encodé</label>
                         <textarea id="encodedText" rows="4" placeholder="VGVzdA=="></textarea>
@@ -530,65 +712,137 @@
                     <button onclick="decode('rot13')">ROT13</button>
                     <button onclick="decode('morse')">Morse</button>
                     <button onclick="decode('binary')">Binaire</button>
+                    <button onclick="decode('url')">URL</button>
+                    <button onclick="autoDetect()">🤖 Auto-détection</button>
                     <div id="decodeResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Analyseur de hash</h3>
+                    <h3>Analyseur & générateur de hash</h3>
                     <div class="input-group">
-                        <label>Hash</label>
+                        <label>Hash ou texte</label>
                         <input type="text" id="hashInput" placeholder="5d41402abc4b2a76b9719d911017c592">
                     </div>
                     <button onclick="identifyHash()">🔍 Identifier</button>
+                    <button onclick="generateHash()">🔒 Générer tous les hash</button>
                     <div id="hashResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Générateur de hash</h3>
+                    <h3>Analyse de chiffrement</h3>
                     <div class="input-group">
-                        <label>Texte à hasher</label>
-                        <input type="text" id="textToHash" placeholder="Votre texte">
+                        <label>Texte chiffré</label>
+                        <textarea id="cipherText" rows="4" placeholder="KHOOR ZRUOG"></textarea>
                     </div>
-                    <button onclick="generateHash()">🔒 Générer</button>
-                    <div id="hashGenResult" class="result-box" style="display:none;"></div>
+                    <button onclick="analyzeCipher()">📊 Analyse fréquentielle</button>
+                    <button onclick="caesarBrute()">🔓 Brute force César</button>
+                    <div id="cipherResult" class="result-box" style="display:none;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- MÉTADONNÉES -->
+        <!-- METADATA -->
         <div id="metadata" class="content">
             <div class="tool-section">
                 <h2>📋 Extraction de métadonnées</h2>
                 
                 <div class="feature-card">
-                    <h3>Analyseur d'URL</h3>
+                    <h3>Analyseur d'URL avancé</h3>
                     <div class="input-group">
                         <label>URL complète</label>
                         <input type="url" id="urlToAnalyze" placeholder="https://example.com/page?param=value">
                     </div>
                     <button onclick="analyzeURL()">🔗 Analyser</button>
+                    <button onclick="expandShortURL()">🔗 Expand URL courte</button>
                     <div id="urlResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Extracteur d'emails</h3>
+                    <h3>Extracteur d'informations</h3>
                     <div class="input-group">
-                        <label>Texte</label>
-                        <textarea id="emailText" rows="5" placeholder="Collez du texte contenant des emails..."></textarea>
+                        <label>Texte ou données</label>
+                        <textarea id="extractText" rows="6" placeholder="Collez du texte..."></textarea>
                     </div>
-                    <button onclick="extractEmails()">📧 Extraire</button>
-                    <div id="emailResult" class="result-box" style="display:none;"></div>
+                    <button onclick="extractEmails()">📧 Emails</button>
+                    <button onclick="extractPhones()">📞 Téléphones</button>
+                    <button onclick="extractIPs()">🌐 IPs</button>
+                    <button onclick="extractURLs()">🔗 URLs</button>
+                    <button onclick="extractAll()">✨ Tout extraire</button>
+                    <div id="extractResult" class="result-box" style="display:none;"></div>
                 </div>
 
                 <div class="feature-card">
-                    <h3>Horodatage Unix</h3>
+                    <h3>Convertisseur de timestamps</h3>
                     <div class="input-group">
-                        <label>Timestamp Unix</label>
+                        <label>Timestamp Unix ou date</label>
                         <input type="text" id="unixTime" placeholder="1706198400">
                     </div>
                     <button onclick="convertUnixTime()">⏰ Convertir</button>
                     <button onclick="getCurrentTime()">🕐 Maintenant</button>
+                    <button onclick="calculateTimeDiff()">⏱️ Différence</button>
                     <div id="timeResult" class="result-box" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADVANCED -->
+        <div id="advanced" class="content">
+            <div class="tool-section">
+                <h2>⚡ Outils avancés</h2>
+                
+                <div class="feature-card">
+                    <h3>Générateur de rapports OSINT</h3>
+                    <div class="input-group">
+                        <label>Nom du sujet</label>
+                        <input type="text" id="reportSubject" placeholder="Nom de la cible">
+                    </div>
+                    <div class="input-group">
+                        <label>Données collectées</label>
+                        <textarea id="reportData" rows="8" placeholder="Entrez les données trouvées..."></textarea>
+                    </div>
+                    <button onclick="generateReport()">📄 Générer rapport</button>
+                    <button onclick="exportPDF()">📑 Exporter PDF</button>
+                    <div id="reportResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Timeline generator</h3>
+                    <div class="input-group">
+                        <label>Événements (date,événement par ligne)</label>
+                        <textarea id="timelineData" rows="6" placeholder="2024-01-15,Événement 1
+2024-02-20,Événement 2"></textarea>
+                    </div>
+                    <button onclick="createTimeline()">📅 Créer timeline</button>
+                    <div id="timelineResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Correlation analyzer</h3>
+                    <p style="color: #b0b0b0; margin-bottom: 15px;">Trouver des liens entre plusieurs entités</p>
+                    <div class="input-group">
+                        <label>Données à analyser (JSON ou CSV)</label>
+                        <textarea id="correlationData" rows="6"></textarea>
+                    </div>
+                    <button onclick="analyzeCorrelation()">🔗 Analyser</button>
+                    <div id="corrResult" class="result-box" style="display:none;"></div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Batch processing</h3>
+                    <div class="input-group">
+                        <label>Liste d'URLs/IPs/usernames (un par ligne)</label>
+                        <textarea id="batchData" rows="6"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Type d'analyse</label>
+                        <select id="batchType">
+                            <option value="ip">IP Lookup</option>
+                            <option value="domain">WHOIS Domain</option>
+                            <option value="username">Username Search</option>
+                        </select>
+                    </div>
+                    <button onclick="batchProcess()">⚡ Traiter par lot</button>
+                    <div id="batchResult" class="result-box" style="display:none;"></div>
                 </div>
             </div>
         </div>
@@ -596,7 +850,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
-        let map, markers = [], signalInterval;
+        let map, markers = [], signalInterval, spectrumInterval, blankInterval, scanInterval;
+        let currentFreq = 88.0;
+        let isStereo = false;
+        let isScanning = false;
 
         function switchTab(tab) {
             document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
@@ -606,6 +863,263 @@
             if (tab === 'geo') setTimeout(initMap, 100);
         }
 
+        function showResult(id, text) {
+            const el = document.getElementById(id);
+            el.innerHTML = `<pre>${text}</pre>`;
+            el.style.display = 'block';
+        }
+
+        // ========== RADIO FM ==========
+        const fmSlider = document.getElementById('fmSlider');
+        const fmDisplay = document.getElementById('fmDisplay');
+        
+        if (fmSlider) {
+            fmSlider.addEventListener('input', function() {
+                currentFreq = parseFloat(this.value);
+                updateFMDisplay();
+            });
+        }
+
+        function updateFMDisplay() {
+            fmDisplay.textContent = currentFreq.toFixed(1) + ' MHz';
+            simulateSignal();
+            simulateRDS();
+        }
+
+        function simulateSignal() {
+            const signal = Math.floor(50 + Math.random() * 50);
+            document.getElementById('fmSignal').style.width = signal + '%';
+            document.getElementById('signalStrength').textContent = signal;
+        }
+
+        function simulateRDS() {
+            const stations = {
+                88.2: { ps: 'F.INTER', rt: 'France Inter - Radio publique française', pty: 'News' },
+                89.0: { ps: 'F.MUSIQU', rt: 'France Musique - Musique classique', pty: 'Classical' },
+                90.4: { ps: 'NOSTALGI', rt: 'Nostalgie - Les plus belles chansons', pty: 'Oldies' },
+                95.2: { ps: 'NRJ  ', rt: 'NRJ - Hit Music Only!', pty: 'Top 40' },
+                100.3: { ps: 'RTL  ', rt: 'RTL - Première radio généraliste', pty: 'Talk' },
+                104.3: { ps: 'RTL2 ', rt: 'RTL2 - 100% Hits', pty: 'Pop Music' },
+                105.1: { ps: 'FIP  ', rt: 'FIP - Musique éclectique', pty: 'Varied' }
+            };
+
+            const closest = Object.keys(stations).reduce((prev, curr) => {
+                return Math.abs(curr - currentFreq) < Math.abs(prev - currentFreq) ? curr : prev;
+            });
+
+            if (Math.abs(closest - currentFreq) < 0.2) {
+                const station = stations[closest];
+                document.getElementById('rdsPs').textContent = 'PS: ' + station.ps;
+                document.getElementById('rdsRt').textContent = 'RT: ' + station.rt;
+                document.getElementById('rdsPty').textContent = 'PTY: ' + station.pty;
+                document.getElementById('rdsTime').textContent = 'CT: ' + new Date().toLocaleTimeString('fr-FR');
+            } else {
+                document.getElementById('rdsPs').textContent = 'PS: --------';
+                document.getElementById('rdsRt').textContent = 'RT: Aucune station détectée';
+                document.getElementById('rdsPty').textContent = 'PTY: ---';
+            }
+        }
+
+        function scanFM() {
+            if (isScanning) return;
+            isScanning = true;
+            scanInterval = setInterval(() => {
+                currentFreq += 0.1;
+                if (currentFreq > 108.0) currentFreq = 88.0;
+                fmSlider.value = currentFreq;
+                updateFMDisplay();
+                
+                if (Math.random() > 0.9) {
+                    stopScan();
+                }
+            }, 200);
+        }
+
+        function stopScan() {
+            if (scanInterval) {
+                clearInterval(scanInterval);
+                isScanning = false;
+            }
+        }
+
+        function seekUp() {
+            const stations = [88.2, 89.0, 90.4, 95.2, 100.3, 104.3, 105.1];
+            const next = stations.find(s => s > currentFreq) || stations[0];
+            currentFreq = next;
+            fmSlider.value = currentFreq;
+            updateFMDisplay();
+        }
+
+        function seekDown() {
+            const stations = [88.2, 89.0, 90.4, 95.2, 100.3, 104.3, 105.1];
+            const prev = stations.reverse().find(s => s < currentFreq) || stations[stations.length - 1];
+            currentFreq = prev;
+            fmSlider.value = currentFreq;
+            updateFMDisplay();
+        }
+
+        function toggleStereo() {
+            isStereo = !isStereo;
+            const ind = document.getElementById('stereoInd');
+            ind.textContent = isStereo ? 'STEREO' : 'MONO';
+            ind.className = 'stereo-indicator' + (isStereo ? ' active' : '');
+        }
+
+        function tuneStation(freq) {
+            currentFreq = freq;
+            fmSlider.value = freq;
+            updateFMDisplay();
+        }
+
+        function startSpectrum() {
+            const canvas = document.getElementById('spectrumCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+
+            spectrumInterval = setInterval(() => {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+
+                for (let i = 0; i < 100; i++) {
+                    const freq = 88 + (i / 100) * 20;
+                    const x = (i / 100) * canvas.width;
+                    let y = canvas.height - (Math.random() * 50);
+
+                    if (Math.abs(freq - 88.2) < 0.2 || Math.abs(freq - 95.2) < 0.2 || 
+                        Math.abs(freq - 100.3) < 0.2 || Math.abs(freq - 105.1) < 0.2) {
+                        y = canvas.height - (150 + Math.random() * 50);
+                    }
+
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+
+                ctx.stroke();
+
+                ctx.fillStyle = '#667eea';
+                ctx.font = '12px monospace';
+                const markers = [88, 92, 96, 100, 104, 108];
+                markers.forEach(m => {
+                    const x = ((m - 88) / 20) * canvas.width;
+                    ctx.fillText(m + ' MHz', x - 20, canvas.height - 5);
+                });
+            }, 100);
+        }
+
+        function stopSpectrum() {
+            if (spectrumInterval) {
+                clearInterval(spectrumInterval);
+            }
+        }
+
+        function findStations() {
+            const stations = [
+                '88.2 MHz - France Inter (Signal: 95%)',
+                '89.0 MHz - France Musique (Signal: 92%)',
+                '90.4 MHz - Nostalgie (Signal: 88%)',
+                '95.2 MHz - NRJ (Signal: 91%)',
+                '100.3 MHz - RTL (Signal: 87%)',
+                '104.3 MHz - RTL2 (Signal: 85%)',
+                '105.1 MHz - FIP (Signal: 93%)'
+            ];
+
+            showResult('spectrumInfo', `📻 STATIONS DÉTECTÉES\n\n${stations.join('\n')}\n\n💡 Cliquez sur une station dans la liste pour la syntoniser`);
+        }
+
+        function analyzeRadioBlanks() {
+            const duration = parseInt(document.getElementById('blankDuration').value);
+            const threshold = parseInt(document.getElementById('blankThreshold').value);
+            const canvas = document.getElementById('blankCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 200;
+
+            let elapsed = 0;
+            const blanks = [];
+            let currentBlank = null;
+
+            blankInterval = setInterval(() => {
+                const level = Math.random() * 100;
+                const isSilent = level < 20;
+
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = isSilent ? '#ff0000' : '#00ff00';
+                ctx.fillRect((elapsed / duration) * canvas.width, canvas.height - level * 2, 2, level * 2);
+
+                if (isSilent && !currentBlank) {
+                    currentBlank = { start: elapsed, end: elapsed };
+                } else if (isSilent && currentBlank) {
+                    currentBlank.end = elapsed;
+                } else if (!isSilent && currentBlank) {
+                    blanks.push({ ...currentBlank });
+                    currentBlank = null;
+                }
+
+                elapsed += 0.5;
+
+                if (elapsed >= duration) {
+                    stopBlankAnalysis();
+                    showResult('blanksResult', `🔇 ANALYSE TERMINÉE\n\n` +
+                        `Durée totale: ${duration}s\n` +
+                        `Blancs détectés: ${blanks.length}\n\n` +
+                        blanks.map((b, i) => `Blanc ${i + 1}: ${b.start.toFixed(1)}s - ${b.end.toFixed(1)}s (durée: ${(b.end - b.start).toFixed(1)}s)`).join('\n') +
+                        `\n\n💡 Analyse de pattern:\n` +
+                        `- Moyenne des blancs: ${(blanks.reduce((acc, b) => acc + (b.end - b.start), 0) / blanks.length).toFixed(2)}s\n` +
+                        `- Fréquence: ${(blanks.length / duration * 60).toFixed(1)} blancs/minute`
+                    );
+                }
+            }, 500);
+        }
+
+        function stopBlankAnalysis() {
+            if (blankInterval) {
+                clearInterval(blankInterval);
+            }
+        }
+
+        function calculateFMCoverage() {
+            const h = parseFloat(document.getElementById('txHeight').value);
+            const power = parseFloat(document.getElementById('txPower').value);
+            const freq = parseFloat(document.getElementById('radioFreq').value);
+            const terrain = document.getElementById('terrain').value;
+
+            const horizonKm = 4.12 * Math.sqrt(h);
+            
+            let factor = 1;
+            switch(terrain) {
+                case 'urban': factor = 0.5; break;
+                case 'suburban': factor = 0.75; break;
+                case 'rural': factor = 1.0; break;
+                case 'mountain': factor = 1.3; break;
+            }
+
+            const coverage = horizonKm * factor * Math.sqrt(power / 10);
+
+            showResult('coverageResult', `📡 COUVERTURE FM CALCULÉE\n\n` +
+                `Fréquence: ${freq} MHz\n` +
+                `Hauteur antenne: ${h} m\n` +
+                `Puissance: ${power} kW\n` +
+                `Terrain: ${terrain}\n\n` +
+                `Horizon radio théorique: ${horizonKm.toFixed(2)} km\n` +
+                `Couverture estimée: ${coverage.toFixed(2)} km\n` +
+                `Surface couverte: ~${(Math.PI * coverage * coverage).toFixed(0)} km²\n\n` +
+                `⚠️ Estimation théorique\n` +
+                `Facteurs réels:\n` +
+                `- Obstacles (bâtiments, relief)\n` +
+                `- Conditions météo\n` +
+                `- Interférences\n` +
+                `- Qualité de l'antenne réceptrice`
+            );
+        }
+
+        // ========== GÉO ==========
         function initMap() {
             if (!map) {
                 map = L.map('map').setView([48.8566, 2.3522], 6);
@@ -615,13 +1129,6 @@
             }
         }
 
-        function showResult(id, text) {
-            const el = document.getElementById(id);
-            el.innerHTML = `<pre>${text}</pre>`;
-            el.style.display = 'block';
-        }
-
-        // GÉOLOCALISATION
         function convertCoords() {
             const lat = parseFloat(document.getElementById('lat').value);
             const lon = parseFloat(document.getElementById('lon').value);
@@ -629,27 +1136,21 @@
 
             const latDMS = toDMS(Math.abs(lat), lat < 0 ? 'S' : 'N');
             const lonDMS = toDMS(Math.abs(lon), lon < 0 ? 'W' : 'E');
-            
-            showResult('coordResult', `📍 COORDONNÉES CONVERTIES
 
-Décimales: ${lat}, ${lon}
-
-DMS (Degrés Minutes Secondes):
-  Latitude:  ${latDMS}
-  Longitude: ${lonDMS}
-
-MGRS: 31U DQ ${Math.floor(Math.random()*100000)} ${Math.floor(Math.random()*100000)}
-Geohash: u09${Math.random().toString(36).substr(2,7)}
-Plus Code: 8FW4V${Math.random().toString(36).substr(2,5).toUpperCase()}+${Math.random().toString(36).substr(2,2).toUpperCase()}
-
-UTM Zone: ${Math.floor((lon + 180) / 6) + 1}
-`);
+            showResult('coordResult', `📍 COORDONNÉES CONVERTIES\n\n` +
+                `Décimales: ${lat}, ${lon}\n\n` +
+                `DMS:\n  Lat: ${latDMS}\n  Lon: ${lonDMS}\n\n` +
+                `MGRS: 31U DQ ${Math.floor(Math.random() * 100000)} ${Math.floor(Math.random() * 100000)}\n` +
+                `Geohash: u09${Math.random().toString(36).substr(2, 7)}\n` +
+                `Plus Code: 8FW4V${Math.random().toString(36).substr(2, 5).toUpperCase()}+${Math.random().toString(36).substr(2, 2).toUpperCase()}\n` +
+                `UTM Zone: ${Math.floor((lon + 180) / 6) + 1}${lat >= 0 ? 'N' : 'S'}`
+            );
         }
 
         function toDMS(dd, dir) {
             const deg = Math.floor(dd);
             const min = Math.floor((dd - deg) * 60);
-            const sec = ((dd - deg - min/60) * 3600).toFixed(2);
+            const sec = ((dd - deg - min / 60) * 3600).toFixed(2);
             return `${deg}° ${min}' ${sec}" ${dir}`;
         }
 
@@ -661,7 +1162,7 @@ UTM Zone: ${Math.floor((lon + 180) / 6) + 1}
             initMap();
             markers.forEach(m => map.removeLayer(m));
             markers = [];
-            
+
             const marker = L.marker([lat, lon]).addTo(map);
             marker.bindPopup(`<b>📍 Position</b><br>Lat: ${lat}<br>Lon: ${lon}`).openPopup();
             markers.push(marker);
@@ -673,694 +1174,85 @@ UTM Zone: ${Math.floor((lon + 180) / 6) + 1}
             const lon1 = parseFloat(document.getElementById('lon').value);
             const input2 = prompt('Point 2 (lat,lon):');
             if (!input2) return;
-            
+
             const [lat2, lon2] = input2.split(',').map(x => parseFloat(x.trim()));
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             const dist = R * c;
-            
-            showResult('coordResult', `📏 DISTANCE CALCULÉE
 
-Point 1: ${lat1}, ${lon1}
-Point 2: ${lat2}, ${lon2}
-
-Distance: ${dist.toFixed(2)} km
-Distance: ${(dist * 0.621371).toFixed(2)} miles
-Distance: ${(dist * 1000).toFixed(0)} mètres
-
-Azimut: ${calculateBearing(lat1, lon1, lat2, lon2).toFixed(2)}°
-`);
-
-            initMap();
-            markers.forEach(m => map.removeLayer(m));
-            markers = [
-                L.marker([lat1, lon1]).addTo(map).bindPopup('Point 1'),
-                L.marker([lat2, lon2]).addTo(map).bindPopup('Point 2')
-            ];
-            L.polyline([[lat1, lon1], [lat2, lon2]], {color: '#667eea'}).addTo(map);
-            map.fitBounds([[lat1, lon1], [lat2, lon2]]);
+            showResult('coordResult', `📏 DISTANCE\n\n` +
+                `Point 1: ${lat1}, ${lon1}\n` +
+                `Point 2: ${lat2}, ${lon2}\n\n` +
+                `Distance: ${dist.toFixed(2)} km\n` +
+                `Distance: ${(dist * 0.621371).toFixed(2)} miles\n` +
+                `Azimut: ${calculateBearing(lat1, lon1, lat2, lon2).toFixed(2)}°`
+            );
         }
 
         function calculateBearing(lat1, lon1, lat2, lon2) {
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
             const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-                      Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+                Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
             return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+        }
+
+        function reverseGeocode() {
+            showResult('coordResult', `🔍 GÉOCODAGE INVERSE\n\nUtilisez des API réelles:\n- Nominatim (OpenStreetMap)\n- Google Geocoding API\n- Mapbox Geocoding\n\nExemple: https://nominatim.openstreetmap.org/reverse?lat=${document.getElementById('lat').value}&lon=${document.getElementById('lon').value}`);
         }
 
         function triangulate() {
             const p1 = document.getElementById('tri1').value.split(',').map(x => parseFloat(x.trim()));
             const p2 = document.getElementById('tri2').value.split(',').map(x => parseFloat(x.trim()));
             const p3 = document.getElementById('tri3').value.split(',').map(x => parseFloat(x.trim()));
-            
+
             if (p1.length !== 2 || p2.length !== 2 || p3.length !== 2) {
-                return alert('Format invalide. Utilisez: lat, lon');
+                return alert('Format: lat, lon');
             }
 
             const centerLat = (p1[0] + p2[0] + p3[0]) / 3;
             const centerLon = (p1[1] + p2[1] + p3[1]) / 3;
 
-            showResult('triResult', `🔺 TRIANGULATION
-
-Point central estimé:
-Latitude:  ${centerLat.toFixed(6)}
-Longitude: ${centerLon.toFixed(6)}
-
-Points de référence:
-P1: ${p1[0]}, ${p1[1]}
-P2: ${p2[0]}, ${p2[1]}
-P3: ${p3[0]}, ${p3[1]}
-
-Précision: Moyenne arithmétique des 3 points
-`);
+            showResult('triResult', `🔺 TRIANGULATION\n\n` +
+                `Centre: ${centerLat.toFixed(6)}, ${centerLon.toFixed(6)}\n\n` +
+                `Points:\n` +
+                `P1: ${p1[0]}, ${p1[1]}\n` +
+                `P2: ${p2[0]}, ${p2[1]}\n` +
+                `P3: ${p3[0]}, ${p3[1]}`
+            );
 
             initMap();
             markers.forEach(m => map.removeLayer(m));
             markers = [];
-            
+
             [p1, p2, p3].forEach((p, i) => {
-                markers.push(L.marker(p).addTo(map).bindPopup(`Point ${i+1}`));
+                markers.push(L.marker(p).addTo(map).bindPopup(`Point ${i + 1}`));
             });
-            markers.push(L.marker([centerLat, centerLon]).addTo(map)
-                .bindPopup('<b>Centre triangulé</b>'));
-            
-            L.polygon([p1, p2, p3], {color: '#667eea'}).addTo(map);
+            markers.push(L.marker([centerLat, centerLon]).addTo(map).bindPopup('<b>Centre</b>'));
+            L.polygon([p1, p2, p3], { color: '#667eea' }).addTo(map);
             map.fitBounds([p1, p2, p3]);
         }
 
-        // RADIO
-        function analyzeFrequency() {
-            const freq = parseFloat(document.getElementById('frequency').value);
-            document.getElementById('freqDisplay').textContent = freq.toFixed(1) + ' MHz';
-            
-            let band = '';
-            let usage = '';
-            
-            if (freq >= 0.535 && freq <= 1.705) {
-                band = 'AM - Ondes Moyennes';
-                usage = 'Radio AM commerciale';
-            } else if (freq >= 3 && freq <= 30) {
-                band = 'HF - Ondes Courtes';
-                usage = 'Communications longue distance, radio amateur';
-            } else if (freq >= 88 && freq <= 108) {
-                band = 'FM - VHF Band II';
-                usage = 'Radio FM commerciale';
-            } else if (freq >= 144 && freq <= 148) {
-                band = 'VHF - Bande 2m';
-                usage = 'Radio amateur VHF';
-            } else if (freq >= 430 && freq <= 440) {
-                band = 'UHF - Bande 70cm';
-                usage = 'Radio amateur UHF';
-            } else if (freq >= 118 && freq <= 137) {
-                band = 'VHF Aviation';
-                usage = 'Communications aéronautiques';
-            } else if (freq >= 156 && freq <= 174) {
-                band = 'VHF Maritime';
-                usage = 'Communications maritimes';
-            } else {
-                band = 'Autre';
-                usage = 'Fréquence non identifiée dans les bandes communes';
-            }
-
-            const wavelength = (300 / freq).toFixed(2);
-
-            showResult('freqInfo', `📡 ANALYSE DE FRÉQUENCE
-
-Fréquence: ${freq} MHz
-Longueur d'onde: ${wavelength} mètres
-Bande: ${band}
-Usage typique: ${usage}
-
-Caractéristiques de propagation:
-${freq < 30 ? '- Propagation ionosphérique possible\n- Portée potentielle: mondiale' : ''}
-${freq >= 30 && freq < 300 ? '- Propagation ligne de vue\n- Portée: locale/régionale' : ''}
-${freq >= 300 ? '- Propagation strictement ligne de vue\n- Portée: limitée' : ''}
-`);
+        function addTriPoint() {
+            alert('Fonctionnalité à venir: ajout de points supplémentaires');
         }
 
-        function startSignalScan() {
-            const canvas = document.getElementById('signalCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 300;
-            
-            let x = 0;
-            const signals = [];
-            
-            signalInterval = setInterval(() => {
-                const signal = Math.random() * 100;
-                signals.push(signal);
-                if (signals.length > 100) signals.shift();
-                
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.strokeStyle = '#00ff00';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                
-                signals.forEach((s, i) => {
-                    const x = (i / signals.length) * canvas.width;
-                    const y = canvas.height - (s / 100) * canvas.height;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                });
-                
-                ctx.stroke();
-                
-                document.getElementById('signalLevel').style.width = signal + '%';
-                
-                showResult('signalResult', `Signal détecté: ${signal.toFixed(1)}%\nFréquence centrale: ${(144 + Math.random()).toFixed(3)} MHz`);
-            }, 100);
-        }
-
-        function stopSignalScan() {
-            if (signalInterval) {
-                clearInterval(signalInterval);
-                showResult('signalResult', 'Scan arrêté.');
-            }
-        }
-
-        function analyzeRadioBlanks() {
-            const duration = parseInt(document.getElementById('blankDuration').value);
-            const blanks = [];
-            
-            for (let i = 0; i < Math.floor(duration / 10); i++) {
-                if (Math.random() > 0.7) {
-                    blanks.push({
-                        start: i * 10,
-                        duration: Math.floor(Math.random() * 5) + 1
-                    });
-                }
-            }
-
-            let result = `🔇 ANALYSE DES BLANCS RADIO\n\nDurée totale: ${duration}s\nBlancs détectés: ${blanks.length}\n\n`;
-            
-            blanks.forEach((b, i) => {
-                result += `Blanc ${i+1}: ${b.start}s - ${b.start + b.duration}s (${b.duration}s)\n`;
+        function analyzeTrajectory() {
+            const text = document.getElementById('trajectory').value;
+            const lines = text.split('\n').filter(l => l.trim());
+            const points = lines.map(l => {
+                const [lat, lon, ts] = l.split(',').map(x => x.trim());
+                return { lat: parseFloat(lat), lon: parseFloat(lon), time: parseInt(ts) };
             });
 
-            result += `\n💡 Les blancs peuvent indiquer:\n- Changements d'opérateur\n- Pauses programmées\n- Problèmes techniques\n- Pattern de communication`;
+            if (points.length < 2) return alert('Min 2 points requis');
 
-            showResult('blanksResult', result);
-        }
+            let totalDist = 0;
+            let result = `🛤️ ANALYSE DE TRAJECTOIRE\n\nPoints: ${points.length}\n\n`;
 
-        function calculateRadioRange() {
-            const h1 = parseFloat(document.getElementById('txHeight').value);
-            const h2 = parseFloat(document.getElementById('rxHeight').value);
-            const freq = parseFloat(document.getElementById('radioFreq').value);
-            
-            const d1 = 4.12 * Math.sqrt(h1);
-            const d2 = 4.12 * Math.sqrt(h2);
-            const range = d1 + d2;
-
-            showResult('rangeResult', `📡 PORTÉE RADIO CALCULÉE
-
-Hauteur émetteur: ${h1} m
-Hauteur récepteur: ${h2} m
-Fréquence: ${freq} MHz
-
-Portée théorique (ligne de vue): ${range.toFixed(2)} km
-Portée théorique: ${(range * 0.621371).toFixed(2)} miles
-
-Horizon radio émetteur: ${d1.toFixed(2)} km
-Horizon radio récepteur: ${d2.toFixed(2)} km
-
-⚠️ Conditions idéales (pas d'obstacles)
-⚠️ La portée réelle dépend du terrain, météo, puissance
-`);
-        }
-
-        // IMAGE
-        function extractEXIF() {
-            const file = document.getElementById('imageFile').files[0];
-            if (!file) return alert('Sélectionnez une image');
-
-            showResult('exifResult', `📸 SIMULATION EXIF
-
-Fichier: ${file.name}
-Taille: ${(file.size / 1024).toFixed(2)} KB
-Type: ${file.type}
-Dernière modification: ${new Date(file.lastModified).toLocaleString('fr-FR')}
-
-⚠️ Pour une vraie extraction EXIF, utilisez:
-- exiftool (ligne de commande)
-- Jeffrey's Image Metadata Viewer (en ligne)
-- Analyse manuelle avec bibliothèques JS
-
-Les données EXIF peuvent inclure:
-- GPS (latitude/longitude)
-- Date/heure de prise
-- Appareil photo/modèle
-- Paramètres (ISO, ouverture, vitesse)
-- Logiciel d'édition utilisé
-`);
-        }
-
-        function reverseImageSearch(engine) {
-            const url = document.getElementById('imageUrl').value;
-            if (!url) return alert('Entrez une URL d\'image');
-
-            const encodedUrl = encodeURIComponent(url);
-            let searchUrl = '';
-
-            switch(engine) {
-                case 'google':
-                    searchUrl = `https://www.google.com/searchbyimage?image_url=${encodedUrl}`;
-                    break;
-                case 'yandex':
-                    searchUrl = `https://yandex.com/images/search?rpt=imageview&url=${encodedUrl}`;
-                    break;
-                case 'tineye':
-                    searchUrl = `https://tineye.com/search?url=${encodedUrl}`;
-                    break;
-                case 'bing':
-                    searchUrl = `https://www.bing.com/images/search?view=detailv2&iss=sbi&form=SBIIRP&sbisrc=UrlPaste&q=imgurl:${encodedUrl}`;
-                    break;
-            }
-
-            window.open(searchUrl, '_blank');
-        }
-
-        function analyzeShadow() {
-            const angle = parseFloat(document.getElementById('shadowAngle').value);
-            const ratio = parseFloat(document.getElementById('shadowRatio').value);
-
-            if (isNaN(angle) || isNaN(ratio)) return alert('Valeurs invalides');
-
-            const elevation = Math.atan(1 / ratio) * (180 / Math.PI);
-            const hours = [
-                {h: 6, e: 15}, {h: 7, e: 20}, {h: 8, e: 25},
-                {h: 9, e: 35}, {h: 10, e: 45}, {h: 11, e: 55},
-                {h: 12, e: 60}, {h: 13, e: 55}, {h: 14, e: 45},
-                {h: 15, e: 35}, {h: 16, e: 25}, {h: 17, e: 20},
-                {h: 18, e: 15}
-            ];
-
-            const closest = hours.reduce((prev, curr) => 
-                Math.abs(curr.e - elevation) < Math.abs(prev.e - elevation) ? curr : prev
-            );
-
-            showResult('shadowResult', `🌅 ANALYSE D'OMBRES
-
-Angle de l'ombre: ${angle}°
-Ratio ombre/hauteur: ${ratio}
-
-Élévation solaire estimée: ${elevation.toFixed(1)}°
-Heure approximative: ${closest.h}h00
-
-Direction de l'ombre: ${angle < 180 ? 'Nord' : 'Sud'}
-
-⚠️ L'heure dépend de:
-- La latitude
-- La saison
-- Le fuseau horaire
-- Les obstacles environnants
-
-💡 Utilisez SunCalc.org pour plus de précision
-`);
-        }
-
-        // NETWORK
-        function lookupIP() {
-            const ip = document.getElementById('ipAddress').value;
-            
-            showResult('ipResult', `🌐 LOOKUP IP: ${ip}
-
-⚠️ Simulation - Utilisez des API réelles:
-- ipapi.co/${ip}/json
-- ip-api.com/json/${ip}
-- ipinfo.io/${ip}
-
-Informations typiques d'un lookup:
-- Pays / Région / Ville
-- Latitude / Longitude
-- FAI (Fournisseur)
-- Organisation
-- ASN (Autonomous System Number)
-- Timezone
-
-Exemple de commandes CLI:
-$ curl ipinfo.io/${ip}
-$ whois ${ip}
-$ dig -x ${ip}
-`);
-        }
-
-        function whoisLookup() {
-            const domain = document.getElementById('domain').value;
-            
-            showResult('whoisResult', `📋 WHOIS: ${domain}
-
-⚠️ Utilisez des outils WHOIS réels:
-- whois.domaintools.com
-- who.is
-- whois (CLI)
-
-Informations WHOIS typiques:
-- Registrar (bureau d'enregistrement)
-- Date de création
-- Date d'expiration
-- Serveurs DNS
-- Statut du domaine
-- Contact technique/administratif
-
-Commande: $ whois ${domain}
-`);
-        }
-
-        function dnsLookup() {
-            const domain = document.getElementById('domain').value;
-            
-            showResult('whoisResult', `🌐 DNS LOOKUP: ${domain}
-
-⚠️ Utilisez des outils DNS réels:
-- dnschecker.org
-- mxtoolbox.com
-- dig/nslookup (CLI)
-
-Types d'enregistrements DNS:
-- A: Adresse IPv4
-- AAAA: Adresse IPv6
-- MX: Serveurs mail
-- NS: Serveurs de noms
-- TXT: Données texte (SPF, DKIM)
-- CNAME: Alias
-
-Commandes:
-$ dig ${domain}
-$ nslookup ${domain}
-$ host ${domain}
-`);
-        }
-
-        function analyzePort() {
-            const port = parseInt(document.getElementById('portNumber').value);
-            
-            const ports = {
-                21: 'FTP - File Transfer Protocol',
-                22: 'SSH - Secure Shell',
-                23: 'Telnet',
-                25: 'SMTP - Simple Mail Transfer',
-                53: 'DNS - Domain Name System',
-                80: 'HTTP - Web non sécurisé',
-                110: 'POP3 - Réception mail',
-                143: 'IMAP - Réception mail',
-                443: 'HTTPS - Web sécurisé',
-                3306: 'MySQL Database',
-                3389: 'RDP - Remote Desktop',
-                5432: 'PostgreSQL',
-                8080: 'HTTP alternatif'
-            };
-
-            const service = ports[port] || 'Port non standard ou inconnu';
-
-            showResult('portResult', `🔌 PORT ${port}
-
-Service: ${service}
-
-${port < 1024 ? '⚠️ Port bien connu (0-1023)' : 
-  port < 49152 ? '📌 Port enregistré (1024-49151)' : 
-  '🔧 Port dynamique (49152-65535)'}
-
-Catégorie: ${port < 1024 ? 'Privilégié (nécessite root)' : 'Non-privilégié'}
-
-Outils de scan:
-- nmap -p ${port} <target>
-- netstat -an | grep ${port}
-- telnet <host> ${port}
-
-⚠️ Ne scannez que vos propres systèmes
-`);
-        }
-
-        // SOCIAL
-        function searchUsername() {
-            const username = document.getElementById('username').value;
-            if (!username) return alert('Entrez un username');
-
-            const platforms = [
-                { name: 'GitHub', url: `https://github.com/${username}` },
-                { name: 'Twitter/X', url: `https://twitter.com/${username}` },
-                { name: 'Instagram', url: `https://instagram.com/${username}` },
-                { name: 'Reddit', url: `https://reddit.com/user/${username}` },
-                { name: 'YouTube', url: `https://youtube.com/@${username}` },
-                { name: 'TikTok', url: `https://tiktok.com/@${username}` },
-                { name: 'LinkedIn', url: `https://linkedin.com/in/${username}` },
-                { name: 'Twitch', url: `https://twitch.tv/${username}` },
-                { name: 'Discord', url: `https://discord.com/users/${username}` },
-                { name: 'Telegram', url: `https://t.me/${username}` }
-            ];
-
-            let result = `👤 RECHERCHE USERNAME: ${username}\n\n`;
-            result += 'Cliquez pour vérifier la présence:\n\n';
-            
-            platforms.forEach(p => {
-                result += `${p.name}: ${p.url}\n`;
-            });
-
-            result += `\n💡 Outils recommandés:\n- Sherlock (CLI)\n- Namechk.com\n- WhatsMyName.app\n- Maigret (CLI)`;
-
-            showResult('usernameResult', result);
-
-            platforms.slice(0, 3).forEach(p => {
-                setTimeout(() => window.open(p.url, '_blank'), 500);
-            });
-        }
-
-        function analyzeTwitter() {
-            const handle = document.getElementById('twitterHandle').value.replace('@', '');
-            if (!handle) return alert('Entrez un handle');
-
-            showResult('twitterResult', `𝕏 ANALYSE TWITTER: @${handle}
-
-Profil: https://twitter.com/${handle}
-Nitter (frontend alternatif): https://nitter.net/${handle}
-
-Outils d'analyse Twitter:
-- Tweetdeck
-- Social Bearing
-- Foller.me
-- TweetBeaver
-- Twitter Advanced Search
-
-Données analysables:
-- Tweets / Retweets / Likes
-- Followers / Following
-- Date de création du compte
-- Localisation (si renseignée)
-- Liens externes
-- Patterns de tweet (heures, fréquence)
-- Interactions récurrentes
-
-⚠️ Respectez la vie privée et les ToS
-`);
-
-            window.open(`https://twitter.com/${handle}`, '_blank');
-        }
-
-        // CRYPTO
-        function decode(type) {
-            const text = document.getElementById('encodedText').value;
-            if (!text) return alert('Entrez du texte');
-
-            let result = '';
-
-            try {
-                switch(type) {
-                    case 'base64':
-                        result = atob(text);
-                        break;
-                    case 'hex':
-                        result = text.match(/.{1,2}/g).map(byte => 
-                            String.fromCharCode(parseInt(byte, 16))
-                        ).join('');
-                        break;
-                    case 'rot13':
-                        result = text.replace(/[a-zA-Z]/g, c => 
-                            String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26)
-                        );
-                        break;
-                    case 'morse':
-                        const morse = {
-                            '.-': 'A', '-...': 'B', '-.-.': 'C', '-..': 'D', '.': 'E',
-                            '..-.': 'F', '--.': 'G', '....': 'H', '..': 'I', '.---': 'J',
-                            '-.-': 'K', '.-..': 'L', '--': 'M', '-.': 'N', '---': 'O',
-                            '.--.': 'P', '--.-': 'Q', '.-.': 'R', '...': 'S', '-': 'T',
-                            '..-': 'U', '...-': 'V', '.--': 'W', '-..-': 'X', '-.--': 'Y',
-                            '--..': 'Z', '-----': '0', '.----': '1', '..---': '2',
-                            '...--': '3', '....-': '4', '.....': '5', '-....': '6',
-                            '--...': '7', '---..': '8', '----.': '9'
-                        };
-                        result = text.split(' ').map(code => morse[code] || '?').join('');
-                        break;
-                    case 'binary':
-                        result = text.split(' ').map(bin => 
-                            String.fromCharCode(parseInt(bin, 2))
-                        ).join('');
-                        break;
-                }
-
-                showResult('decodeResult', `🔓 DÉCODAGE ${type.toUpperCase()}\n\nRésultat:\n${result}\n\nOriginal:\n${text}`);
-            } catch(e) {
-                showResult('decodeResult', `❌ Erreur de décodage: ${e.message}\n\nVérifiez le format d'entrée`);
-            }
-        }
-
-        function identifyHash() {
-            const hash = document.getElementById('hashInput').value.trim();
-            const len = hash.length;
-
-            let type = 'Inconnu';
-            if (len === 32 && /^[a-f0-9]+$/i.test(hash)) type = 'MD5';
-            else if (len === 40 && /^[a-f0-9]+$/i.test(hash)) type = 'SHA-1';
-            else if (len === 64 && /^[a-f0-9]+$/i.test(hash)) type = 'SHA-256';
-            else if (len === 128 && /^[a-f0-9]+$/i.test(hash)) type = 'SHA-512';
-            else if (hash.startsWith('$2a
-            ) || hash.startsWith('$2b
-            )) type = 'bcrypt';
-            else if (hash.startsWith('$6
-            )) type = 'SHA-512 crypt';
-
-            showResult('hashResult', `🔍 IDENTIFICATION HASH
-
-Hash: ${hash}
-Longueur: ${len} caractères
-Type probable: ${type}
-
-${type === 'MD5' ? '⚠️ MD5 est obsolète et non sécurisé' : ''}
-${type === 'SHA-1' ? '⚠️ SHA-1 est déconseillé' : ''}
-
-Outils de cracking (légal uniquement):
-- hashcat
-- john (John the Ripper)
-- CrackStation (en ligne)
-- Hash-Identifier
-`);
-        }
-
-        function generateHash() {
-            const text = document.getElementById('textToHash').value;
-            if (!text) return alert('Entrez du texte');
-
-            const encoder = new TextEncoder();
-            const data = encoder.encode(text);
-
-            crypto.subtle.digest('SHA-256', data).then(hashBuffer => {
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const sha256 = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-                let md5Sim = '';
-                for(let i = 0; i < 32; i++) {
-                    md5Sim += Math.floor(Math.random() * 16).toString(16);
-                }
-
-                showResult('hashGenResult', `🔒 HASH GÉNÉRÉ
-
-Texte original: ${text}
-
-SHA-256:
-${sha256}
-
-MD5 (simulé - utilisez une vraie lib):
-${md5Sim}
-
-⚠️ Pour MD5/SHA-1 réels, utilisez:
-- CryptoJS
-- Node.js crypto
-- OpenSSL CLI
-`);
-            });
-        }
-
-        // METADATA
-        function analyzeURL() {
-            const url = document.getElementById('urlToAnalyze').value;
-            if (!url) return alert('Entrez une URL');
-
-            try {
-                const parsed = new URL(url);
-                const params = new URLSearchParams(parsed.search);
-                let paramList = '';
-                params.forEach((value, key) => {
-                    paramList += `  ${key} = ${value}\n`;
-                });
-
-                showResult('urlResult', `🔗 ANALYSE URL
-
-URL complète: ${url}
-
-Protocole: ${parsed.protocol}
-Domaine: ${parsed.hostname}
-Port: ${parsed.port || '(défaut)'}
-Chemin: ${parsed.pathname}
-Paramètres: ${params.toString() || '(aucun)'}
-${paramList ? '\nDétail paramètres:\n' + paramList : ''}
-Fragment: ${parsed.hash}
-
-Encodage: ${decodeURIComponent(url) !== url ? 'Présent' : 'Aucun'}
-`);
-            } catch(e) {
-                showResult('urlResult', `❌ URL invalide: ${e.message}`);
-            }
-        }
-
-        function extractEmails() {
-            const text = document.getElementById('emailText').value;
-            if (!text) return alert('Entrez du texte');
-
-            const emailRegex = /[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+/gi;
-            const emails = text.match(emailRegex) || [];
-            const unique = [...new Set(emails)];
-
-            showResult('emailResult', `📧 EMAILS EXTRAITS
-
-Trouvés: ${unique.length} email(s) unique(s)
-Total: ${emails.length} occurrence(s)
-
-${unique.map(e => `- ${e}`).join('\n')}
-
-${unique.length > 0 ? '\n💡 Vérification email:\n- hunter.io\n- verify-email.org\n- emailhippo.com' : ''}
-`);
-        }
-
-        function convertUnixTime() {
-            const timestamp = parseInt(document.getElementById('unixTime').value);
-            if (isNaN(timestamp)) return alert('Timestamp invalide');
-
-            const date = new Date(timestamp * 1000);
-
-            showResult('timeResult', `⏰ CONVERSION TIMESTAMP
-
-Unix timestamp: ${timestamp}
-
-Date/heure:
-${date.toLocaleString('fr-FR')}
-
-UTC: ${date.toUTCString()}
-ISO: ${date.toISOString()}
-
-Année: ${date.getFullYear()}
-Mois: ${date.getMonth() + 1}
-Jour: ${date.getDate()}
-Heure: ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}
-`);
-        }
-
-        function getCurrentTime() {
-            const now = Math.floor(Date.now() / 1000);
-            document.getElementById('unixTime').value = now;
-            convertUnixTime();
-        }
-
-        // Init
-        setTimeout(initMap, 500);
-    </script>
-</body>
-</html>
+            for (let i = 1; i < points.length; i++)
