@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio OSINT - Fréquences & Écoute</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.8;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar a {
+            color: #667eea;
+            text-decoration: none;
+            margin-left: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar a:hover {
+            color: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .navbar .home-link {
+            font-weight: 700;
+            margin-left: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 30px 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease forwards;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+        }
+
+        .intro-text {
+            font-size: 1.1em;
+            color: #b0b0b0;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section {
+            margin: 60px 0;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .tuner-section {
+            background: rgba(102, 126, 234, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .frequency-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .frequency-value {
+            font-size: 3.5em;
+            font-weight: 700;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+        }
+
+        .frequency-band {
+            font-size: 1.1em;
+            color: #a0a0a0;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #b8c5ff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .waveform {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+            gap: 3px;
+        }
+
+        .bar {
+            width: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+            animation: wave 0.6s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 20%; }
+            50% { height: 80%; }
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .search-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-field label {
+            color: #b8c5ff;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .search-field input,
+        .search-field select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #e0e0e0;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .search-field input:focus,
+        .search-field select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .stations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .station-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .station-card:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
+        }
+
+        .station-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .station-freq {
+            font-size: 1.8em;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .station-type {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.2);
+            color: #b8c5ff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+        }
+
+        .station-info {
+            font-size: 0.9em;
+            color: #a0a0a0;
+            margin: 8px 0;
+        }
+
+        .rds-info {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid #764ba2;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .rds-label {
+            color: #764ba2;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .tech-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .tech-title {
+            font-size: 1.3em;
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .tech-desc {
+            color: #b0b0b0;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .tech-specs {
+            font-size: 0.9em;
+            color: #a0a0a0;
+        }
+
+        .tech-specs strong {
+            color: #b8c5ff;
+        }
+
+        .tools-section {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .tool-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .tool-item h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .tool-item p {
+            color: #a0a0a0;
+            font-size: 0.95em;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #808080;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 80px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #a0a0a0;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5em; }
+            h2 { font-size: 1.6em; }
+            .frequency-value { font-size: 2.5em; }
+            .container { padding: 90px 20px 30px; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="home-link">← Retour</a>
+        <div>
+            <a href="#tuner">Accordeur</a>
+            <a href="#search">Recherche</a>
+            <a href="#technologies">Technos</a>
+            <a href="#osint">OSINT</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>📻 Radio OSINT</h1>
+            <p class="subtitle">Explorez les fréquences radio mondiales – FM, RDS, DAB+ & Outils OSINT</p>
+            <p class="intro-text">
+                Découvrez les fréquences radio à travers le monde, explorez les technologies de transmission,
+                et utilisez des outils OSINT pour analyser les stations de radio. Éducatif et informatif ! 🌍
+            </p>
+        </div>
+
+        <!-- SECTION ACCORDEUR -->
+        <div class="section" id="tuner">
+            <h2>🎚️ Accordeur Radio Interactif</h2>
+            
+            <div class="tuner-section">
+                <div class="frequency-display">
+                    <div class="frequency-value" id="freqDisplay">98.5</div>
+                    <div class="frequency-band">FM (87.5 - 108 MHz)</div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-secondary" onclick="changeFreq(-0.5)">◀ -0.5</button>
+                    <button class="btn" onclick="startStop()" id="playBtn">▶ Écouter</button>
+                    <button class="btn btn-secondary" onclick="changeFreq(0.5)">+0.5 ▶</button>
+                </div>
+
+                <div class="controls">
+                    <select id="bandSelect" onchange="changeBand()" class="btn btn-secondary" style="cursor: pointer; width: auto;">
+                        <option value="fm">FM (87.5-108 MHz)</option>
+                        <option value="am">AM (531-1602 kHz)</option>
+                        <option value="dab">DAB+ (174-240 MHz)</option>
+                    </select>
+                </div>
+
+                <div class="waveform" id="waveform">
+                    <div class="bar" style="animation-delay: 0s"></div>
+                    <div class="bar" style="animation-delay: 0.1s"></div>
+                    <div class="bar" style="animation-delay: 0.2s"></div>
+                    <div class="bar" style="animation-delay: 0.3s"></div>
+                    <div class="bar" style="animation-delay: 0.4s"></div>
+                    <div class="bar" style="animation-delay: 0.5s"></div>
+                    <div class="bar" style="animation-delay: 0.6s"></div>
+                    <div class="bar" style="animation-delay: 0.7s"></div>
+                </div>
+
+                <div class="rds-info" id="rdsInfo" style="display: none;">
+                    <div class="rds-label">📊 Informations RDS :</div>
+                    <div id="rdsContent" style="color: #b0b0b0; font-size: 0.9em;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION RECHERCHE -->
+        <div class="section" id="search">
+            <h2>🔍 Recherche de Stations</h2>
+            
+            <div class="search-section">
+                <div class="search-grid">
+                    <div class="search-field">
+                        <label>Pays/Région</label>
+                        <select id="countryFilter">
+                            <option value="">Tous les pays</option>
+                            <option value="France">France</option>
+                            <option value="Germany">Allemagne</option>
+                            <option value="UK">Royaume-Uni</option>
+                            <option value="USA">États-Unis</option>
+                            <option value="Spain">Espagne</option>
+                        </select>
+                    </div>
+                    <div class="search-field">
+                        <label>Type de fréquence</label>
+                        <select id="typeFilter">
+                            <option value="">Tous les types</option>
+                            <option value="FM">FM</option>
+                            <option value="AM">AM</option>
+                            <option value="DAB+">DAB+</option>
+                        </select>
+                    </div>
+                    <div class="search-field">
+                        <label>Fréquence (MHz)</label>
+                        <input type="text" id="freqSearch" placeholder="ex: 98.5">
+                    </div>
+                    <div class="search-field">
+                        <label>Nom de la station</label>
+                        <input type="text" id="nameSearch" placeholder="ex: France Inter">
+                    </div>
+                </div>
+                <button class="btn" onclick="searchStations()" style="width: 100%;">Rechercher</button>
+            </div>
+
+            <div id="stationsContainer" class="stations-grid">
+                <!-- Les stations s'affichent ici -->
+            </div>
+        </div>
+
+        <!-- SECTION TECHNOLOGIES -->
+        <div class="section" id="technologies">
+            <h2>🌐 Technologies Radio</h2>
+            
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-title">📡 FM (Modulation de Fréquence)</div>
+                    <div class="tech-desc">
+                        La bande FM est la plus utilisée pour la radiodiffusion audio de qualité.
+                    </div>
+                    <div class="tech-specs">
+                        <strong>Fréquence :</strong> 87.5 - 108 MHz<br>
+                        <strong>Bande passante :</strong> 200 kHz<br>
+                        <strong>Zones :</strong> Mondiale<br>
+                        <strong>Portée :</strong> ~80-150 km<br>
+                        <strong>Qualité audio :</strong> Excellente (stéréo)
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-title">📻 AM (Modulation d'Amplitude)</div>
+                    <div class="tech-desc">
+                        La bande AM est plus ancienne mais offre une meilleure propagation à longue distance.
+                    </div>
+                    <div class="tech-specs">
+                        <strong>Fréquence :</strong> 531 - 1602 kHz<br>
+                        <strong>Bande passante :</strong> 10 kHz<br>
+                        <strong>Portée :</strong> Très longue (1000+ km la nuit)<br>
+                        <strong>Qualité audio :</strong> Moyenne (mono)<br>
+                        <strong>Utilisation :</strong> News, sport
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-title">📡 RDS (Radio Data System)</div>
+                    <div class="tech-desc">
+                        Système de transmission de données sur les stations FM pour afficher le nom, l'artiste, etc.
+                    </div>
+                    <div class="tech-specs">
+                        <strong>Fréquence porteuse :</strong> 57 kHz (FM)<br>
+                        <strong>Débit :</strong> 1187.5 bps<br>
+                        <strong>Données :</strong> Nom station, chanson, infos<br>
+                        <strong>Avantage :</strong> Navigation automatique des stations<br>
+                        <strong>Compatibilité :</strong> Récepteurs modernes
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-title">📢 DAB+ (Radio Numérique)</div>
+                    <div class="tech-desc">
+                        La radiodiffusion numérique terrestre offre une qualité supérieure et plus de stations.
+                    </div>
+                    <div class="tech-specs">
+                        <strong>Fréquence :</strong> 174 - 240 MHz<br>
+                        <strong>Codec :</strong> MPEG-4 HE-AAC<br>
+                        <strong>Débit :</strong> 64-256 kbps<br>
+                        <strong>Stations/canal :</strong> 5-14+<br>
+                        <strong>Zones :</strong> Europe, Asie, Afrique
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-title">🛰️ Bandes Spécialisées</div>
+                    <div class="tech-desc">
+                        D'autres bandes radio pour usages spécifiques (aviation, maritime, amateur).
+                    </div>
+                    <div class="tech-specs">
+                        <strong>VHF Aviation :</strong> 118-137 MHz<br>
+                        <strong>Maritime :</strong> 156-162 MHz<br>
+                        <strong>Amateur (Ham) :</strong> 80-2 mètres<br>
+                        <strong>Météo/Alerte :</strong> 162.4-162.55 MHz<br>
+                        <strong>PMR446 :</strong> 446 MHz
+                    </div>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-title">🔐 Cryptage & Sécurité</div>
+                    <div class="tech-desc">
+                        Certains signaux radio sont cryptés pour des raisons de sécurité ou de confidentialité.
+                    </div>
+                    <div class="tech-specs">
+                        <strong>Régulation :</strong> Lois nationales<br>
+                        <strong>P25 / DMR :</strong> Radio professionnelle<br>
+                        <strong>Écoute légale :</strong> Varies by country<br>
+                        <strong>OSINT :</strong> Analyse des métadonnées publiques<br>
+                        <strong>Légalité :</strong> À vérifier localement
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION OSINT -->
+        <div class="section" id="osint">
+            <h2>🔐 Outils & Techniques OSINT Radio</h2>
+            
+            <div class="tools-section">
+                <div class="tool-item">
+                    <h4>1. RadioReference.com</h4>
+                    <p>
+                        Base de données mondiale des fréquences radio. Permet de rechercher par pays, ville, type de station.
+                        Très utile pour trouver les fréquences locales et analyser les infrastructures radio.
+                    </p>
+                </div>
+
+                <div class="tool-item">
+                    <h4>2. SDR (Software Defined Radio)</h4>
+                    <p>
+                        Utilisez des dongles RTL-SDR ( ~15€) avec des logiciels comme GQRX, SDR#, ou CubicSDR pour 
+                        recevoir et analyser les signaux radio. Outils puissants pour l'exploration OSINT radio.
+                    </p>
+                </div>
+
+                <div class="tool-item">
+                    <h4>3. WebSDR & Radio en ligne</h4>
+                    <p>
+                        Accédez à des récepteurs SDR hébergés en ligne (WebSDR.org). Explorez les fréquences 
+                        du monde entier sans matériel, parfait pour le research OSINT.
+                    </p>
+                </div>
+
+                <div class="tool-item">
+                    <h4>4. Analyse de cartes de couverture</h4>
+                    <p>
+                        Les stations publient souvent leurs cartes de couverture. En analysant ces données géospatiales,
+                        on peut identifier les zones de déploiement, les sites d'émission, et les habitudes de transmission.
+                    </p>
+                </div>
+
+                <div class="tool-item">
+                    <h4>5. Monitoring des fréquences d'urgence</h4>
+                    <p>
+                        Les signaux des services d'urgence (non cryptés dans certains pays) peuvent être monitoring légalement.
+                        Outils : Broadcastify.com, RadioGarden.com. À utiliser avec respect de la légalité locale.
+                    </p>
+                </div>
+
+                <div class="tool-item">
+                    <h4>6. Intelligence des métadonnées RDS</h4>
+                    <p>
+                        RDS contient des données publiques : nom station, format, texte radiophonique (RT).
+                        Analyser ces flux révèle les changements de programmation et l'infrastructure radio locale.
+                    </p>
+                </div>
+
+                <div class="tool-item">
+                    <h4>7. Osmocom Tools & Wireshark</h4>
+                    <p>
+                        Outils avancés pour capturer, analyser et décoder les protocoles radio.
+                        Utilisés par les chercheurs en sécurité pour identifier les vulnérabilités.
+                    </p>
+                </div>
+
+                <div class="tool-item">
+                    <h4>8. Géolocalisation par Triangulation RF</h4>
+                    <p>
+                        En mesurant la force du signal depuis plusieurs points, on peut trianguler la position 
+                        d'une station d'émission. Technique classique en OSINT radio avancé.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                🌍 <strong>Radio OSINT</strong> - Exploration éducative des fréquences radio<br>
+                <a href="/">← Retour au site principal</a>
+            </p>
+            <p style="margin-top: 20px; font-size: 0.9em; opacity: 0.6;">
+                ⚠️ Respectez les lois locales concernant l'écoute radio. 
+                L'OSINT radio à fins éducatives est légal dans la plupart des pays.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Base de données des stations radio
+        const stations = [
+            // France
+            { name: "France Inter", freq: 87.8, country: "France", type: "FM", rds: "Infos, variétés", coverage: "France entière" },
+            { name: "France Bleu Île-de-France", freq: 91.7, country: "France", type: "FM", rds: "Infos régionales", coverage: "Île-de-France" },
+            { name: "NRJ", freq: 100.3, country: "France", type: "FM", rds: "Jeunesse, hits", coverage: "France entière" },
+            { name: "RTL", freq: 104.3, country: "France", type: "FM", rds: "Infos, magazine", coverage: "France entière" },
+            { name: "Le Mouv'", freq: 92.1, country: "France", type: "FM", rds: "Musique urbaine", coverage: "France entière" },
+            { name: "Radio Classique", freq: 101.1, country: "France", type: "FM", rds: "Musique classique", coverage: "France entière" },
+
+            // Allemagne
+            { name: "Deutschlandfunk", freq: 89.1, country: "Germany", type: "FM", rds: "Infos, culture", coverage: "Allemagne" },
+            { name: "Bayern 3", freq: 95.5, country: "Germany", type: "FM", rds: "Hits, infos", coverage: "Bavière" },
+
+            // UK
+            { name: "BBC Radio 1", freq: 97.7, country: "UK", type: "FM", rds: "Pop, hits", coverage: "UK entier" },
+            { name: "BBC Radio 2", freq: 88.1, country: "UK", type: "FM", rds: "Variétés", coverage: "UK entier" },
+
+            // Espagne
+            { name: "Radio Española 1", freq: 87.9, country: "Spain", type: "FM", rds: "Infos, culture", coverage: "Espagne" },
+            { name: "Cadena SER", freq: 99.9, country: "Spain", type: "FM", rds: "Infos, magazine", coverage: "Espagne" },
+
+            // USA
+            { name: "NPR News", freq: 88.5, country: "USA", type: "FM", rds: "Infos publiques", coverage: "USA" },
+            { name: "WFAN", freq: 101.9, country: "USA", type: "FM", rds: "Sport, talk", coverage: "New York" }
+        ];
+
+        let currentFreq = 98.5;
+        let currentBand = "fm";
+        let isPlaying = false;
+
+        function changeFreq(delta) {
+            const step = 0.1;
+            currentFreq = Math.round((currentFreq + delta) * 10) / 10;
+            
+            if (currentBand === "fm") {
+                currentFreq = Math.max(87.5, Math.min(108, currentFreq));
+            } else if (currentBand === "am") {
+                currentFreq = Math.max(0.531, Math.min(1.602, currentFreq));
+            }
+            
+            updateDisplay();
+            checkStation();
+        }
+
+        function changeBand() {
+            const select = document.getElementById("bandSelect");
+            currentBand = select.value;
+            
+            if (currentBand === "fm") {
+                currentFreq = 98.5;
+            } else if (currentBand === "am") {
+                currentFreq = 0.9;
+            } else if (currentBand === "dab") {
+                currentFreq = 187.0;
+            }
+            
+            updateDisplay();
+            checkStation();
+        }
+
+        function updateDisplay() {
+            const display = document.getElementById("freqDisplay");
+            if (currentBand === "fm") {
+                display.textContent = currentFreq.toFixed(1);
+            } else if (currentBand === "am") {
+                display.textContent = (currentFreq * 1000).toFixed(0);
+            } else if (currentBand === "dab") {
+                display.textContent = currentFreq.toFixed(1);
+            }
+        }
+
+        function checkStation() {
+            const rdsInfo = document.getElementById("rdsInfo");
+            const rdsContent = document.getElementById("rdsContent");
+            
+            const matchedStation = stations.find(s => 
+                Math.abs(s.freq - currentFreq) < 0.15
+            );
+            
+            if (matchedStation) {
+                rdsContent.innerHTML = `
+                    <strong>${matchedStation.name}</strong><br>
+                    📊 Format: ${matchedStation.rds}<br>
+                    🗺️ Couverture: ${matchedStation.coverage}
+                `;
+                rdsInfo.style.display = "block";
+            } else {
+                rdsInfo.style.display = "none";
+            }
+        }
+
+        function startStop() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById("playBtn");
+            if (isPlaying) {
+                btn.textContent = "⏸ Arrêter";
+                btn.style.background = "linear-gradient(135deg, #ff6b6b, #ee5a6f)";
+            } else {
+                btn.textContent = "▶ Écouter";
+                btn.style.background = "linear-gradient(135deg, #667eea, #764ba2)";
+            }
+        }
+
+        function searchStations() {
+            const country = document.getElementById("countryFilter").value;
+            const type = document.getElementById("typeFilter").value;
+            const freq = document.getElementById("freqSearch").value;
+            const name = document.getElementById("nameSearch").value.toLowerCase();
+            
+            let filtered = stations.filter(s => {
+                let match = true;
+                if (country && s.country !== country) match = false;
+                if (type && s.type !== type) match = false;
+                if (freq && !s.freq.toFixed(1).includes(freq)) match = false;
+                if (name && !s.name.toLowerCase().includes(name)) match = false;
+                return match;
+            });
+            
+            const container = document.getElementById("stationsContainer");
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="no-results">Aucune station trouvée 🔍</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(station => `
+                <div class="station-card" onclick="selectStation('${station.name}', ${station.freq})">
+                    <div class="station-name">${station.name}</div>
+                    <div class="station-freq">${station.freq} MHz</div>
+                    <div class="station-type">${station.type}</div>
+                    <div class="station-info">🗺️ <strong>${station.country}</strong></div>
+                    <div class="station-info">📊 ${station.rds}</div>
+                    <div class="rds-info">
+                        <div class="rds-label">Couverture:</div>
+                        ${station.coverage}
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function selectStation(name, freq) {
+            currentFreq = freq;
+            currentBand = "fm";
+            updateDisplay();
+            checkStation();
+            
+            // Animation smooth vers l'accordeur
+            document.getElementById("tuner").scrollIntoView({ behavior: "smooth" });
+        }
+
+        // Init
+        updateDisplay();
+        searchStations();
+    </script>
+</body>
+</html>
