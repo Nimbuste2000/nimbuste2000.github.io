@@ -1,5 +1,5 @@
-Hey coucou !
-C'est Nimbuste2000 (pour ceux qui me connaissent), je suis en 2nde, je développe, et je suis un passionné de radio, d'informatique et de réseau. (oui oui)
+# OSINT Toolkit Pro - Nimbus2000
 
-Si vous souhaitez me contacter, n'hésitez pas ! : nimbuste2000@gmail.com 
-:D
+Portfolio 15 ans OSINT + FMDX Tuner Live !
+
+**Live :** https://nimbuste2000.github.io/
