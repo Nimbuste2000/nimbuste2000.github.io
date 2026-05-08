@@ -1,29 +1,48 @@
-// Verification de chargement
-console.log("OSINT.js charge avec succes");
+/**
+ * NIMBUSTE 2000 - OSINT & RADIO SCRIPT
+ * Version stabilisee sans caracteres speciaux
+ */
+
+console.log("Chargement du script OSINT...");
 
 // --- NAVIGATION ---
 function switchTab(tabId) {
-    const tabs = document.querySelectorAll('.tab-content');
-    const btns = document.querySelectorAll('.tab-btn');
+    var tabs = document.querySelectorAll('.tab-content');
+    var btns = document.querySelectorAll('.tab-btn');
     
-    tabs.forEach(t => t.classList.remove('active'));
-    btns.forEach(b => b.classList.remove('active'));
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+    }
+    for (var j = 0; j < btns.length; j++) {
+        btns[j].classList.remove('active');
+    }
     
-    document.getElementById(tabId).classList.add('active');
-    if (event) event.currentTarget.classList.add('active');
-    if (tabId === 'geo') setTimeout(initMap, 300);
+    var target = document.getElementById(tabId);
+    if (target) {
+        target.classList.add('active');
+    }
+    
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
+
+    if (tabId === 'geo') {
+        setTimeout(initMap, 300);
+    }
 }
 
-// --- RADIO (Correction des erreurs ReferenceError) ---
+// --- RADIO FUNCTIONS ---
 function updateFMFreq(val) {
-    const display = document.getElementById('fmDisplay');
-    if (display) display.innerText = parseFloat(val).toFixed(1);
+    var display = document.getElementById('fmDisplay');
+    if (display) {
+        display.innerText = parseFloat(val).toFixed(1);
+    }
 }
 
 function changeFM(step) {
-    const slider = document.getElementById('fmSlider');
+    var slider = document.getElementById('fmSlider');
     if (slider) {
-        let newVal = parseFloat(slider.value) + step;
+        var newVal = parseFloat(slider.value) + step;
         if (newVal >= 87.5 && newVal <= 108) {
             slider.value = newVal;
             updateFMFreq(newVal);
@@ -32,33 +51,57 @@ function changeFM(step) {
 }
 
 function toggleFMPlay() {
-    const rds = document.getElementById('rdsDisplay');
-    const rdsContent = document.getElementById('rdsContent');
+    var rds = document.getElementById('rdsDisplay');
+    var rdsContent = document.getElementById('rdsContent');
     if (rds) {
-        const isPlaying = rds.classList.toggle('active');
-        if (rdsContent) rdsContent.innerText = isPlaying ? "SCANNING... SIGNAL: [NIMBUSTE-PRO]" : "";
+        var active = rds.classList.toggle('active');
+        if (rdsContent) {
+            rdsContent.innerText = active ? "SCANNING... SIGNAL OK" : "";
+        }
+    }
+}
+
+async function simulateSignalDetection() {
+    var out = document.getElementById('signalOutput');
+    if (!out) return;
+    out.innerText = "Recherche via API FMDX...";
+    try {
+        var res = await fetch('https://servers.fmdx.org/api/v1/servers');
+        var data = await res.json();
+        var html = '<strong>Resultats:</strong><br>';
+        for (var i = 0; i < Math.min(data.length, 10); i++) {
+            var s = data[i];
+            html += s.name + " (" + s.country + ") - " + s.frequency + "MHz<br>";
+        }
+        out.innerHTML = html;
+    } catch(e) {
+        out.innerText = "Erreur de connexion API.";
     }
 }
 
 // --- GEOLOCALISATION ---
-let map;
+var map = null;
 function initMap() {
     if (map || !document.getElementById('map')) return;
+    // @ts-ignore
     map = L.map('map').setView([48.8566, 2.3522], 13);
+    // @ts-ignore
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 }
 
-// --- UTILITAIRES ---
+// --- RESEAU ---
 async function ipLookup() {
-    const ip = document.getElementById('ipAddress').value;
-    const out = document.getElementById('ipOutput');
-    out.innerText = "Recherche...";
+    var ip = document.getElementById('ipAddress').value;
+    var out = document.getElementById('ipOutput');
+    if (!out) return;
+    out.innerText = "Chargement...";
     try {
-        const res = await fetch("https://ipapi.co/" + ip + "/json/");
-        const data = await res.json();
+        var res = await fetch("https://ipapi.co/" + ip + "/json/");
+        var data = await res.json();
         out.innerText = JSON.stringify(data, null, 2);
-    } catch(e) { out.innerText = "Erreur API."; }
+    } catch(e) {
+        out.innerText = "Erreur lors de la requete.";
+    }
 }
 
-// Ajoute ici les autres fonctions (base64, morse...) si besoin, 
-// mais teste d'abord avec celles-ci.
+console.log("Script charge avec succes !");
