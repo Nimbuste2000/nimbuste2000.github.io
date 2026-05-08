@@ -5,17 +5,21 @@ function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
-    document.getElementById(tabId).classList.add('active');
-    event.currentTarget.classList.add('active');
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.classList.add('active');
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('active');
+        }
+    }
 
-    // Initialisation spéciale pour la carte
     if(tabId === 'geo') {
         setTimeout(initMap, 300);
     }
 }
 
 // ==========================================
-// 2. MODULE RADIO FM & FRÉQUENCES
+// 2. MODULE RADIO FM & FREQUENCES
 // ==========================================
 function updateFMFreq(val) {
     document.getElementById('fmDisplay').innerText = parseFloat(val).toFixed(1);
@@ -58,29 +62,36 @@ function calculateRange() {
     const ht = parseFloat(document.getElementById('txHeight').value);
     const hr = parseFloat(document.getElementById('rxHeight').value);
     const range = 3.57 * (Math.sqrt(ht) + Math.sqrt(hr));
-    document.getElementById('rangeOutput').innerText = `Portée théorique : ${range.toFixed(2)} km`;
+    document.getElementById('rangeOutput').innerText = "Portee theorique : " + range.toFixed(2) + " km";
 }
 
 // ==========================================
-// 3. GÉOLOCALISATION & CARTOGRAPHIE
+// 3. GEOLOCALISATION & CARTOGRAPHIE
 // ==========================================
 let map;
 function initMap() {
     if (map) return;
-    map = L.map('map').setView([48.8566, 2.3522], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const mapDiv = document.getElementById('map');
+    if (mapDiv) {
+        map = L.map('map').setView([48.8566, 2.3522], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    }
 }
 
 function convertCoords() {
     const lat = parseFloat(document.getElementById('lat').value);
     const lon = parseFloat(document.getElementById('lon').value);
+    
     const toDMS = (deg, pos, neg) => {
-        const d = Math.floor(Math.abs(deg));
-        const m = Math.floor((Math.abs(deg) - d) * 60);
-        const s = ((Math.abs(deg) - d - m/60) * 3600).toFixed(2);
-        return `${d}°${m}'${s}"${deg >= 0 ? pos : neg}`;
+        const absDeg = Math.abs(deg);
+        const d = Math.floor(absDeg);
+        const m = Math.floor((absDeg - d) * 60);
+        const s = ((absDeg - d - m/60) * 3600).toFixed(2);
+        const sign = deg >= 0 ? pos : neg;
+        return d + " deg " + m + "' " + s + "'' " + sign;
     };
-    document.getElementById('coordsOutput').innerText = `${toDMS(lat, 'N', 'S')} , ${toDMS(lon, 'E', 'W')}`;
+    
+    document.getElementById('coordsOutput').innerText = toDMS(lat, 'N', 'S') + " , " + toDMS(lon, 'E', 'W');
 }
 
 function calculateDistance() {
@@ -89,15 +100,24 @@ function calculateDistance() {
     const lat2 = parseFloat(document.getElementById('lat2').value) * Math.PI / 180;
     const lon2 = parseFloat(document.getElementById('lon2').value) * Math.PI / 180;
     const d = 2 * 6371 * Math.asin(Math.sqrt(Math.pow(Math.sin((lat2-lat1)/2),2) + Math.cos(lat1)*Math.cos(lat2)*Math.pow(Math.sin((lon2-lon1)/2),2)));
-    document.getElementById('distOutput').innerText = `Distance : ${d.toFixed(3)} km`;
+    document.getElementById('distOutput').innerText = "Distance : " + d.toFixed(3) + " km";
 }
 
 function calculateAzimuth() {
-    const from = document.getElementById('fromCoord').value.split(',').map(Number);
-    const to = document.getElementById('toCoord').value.split(',').map(Number);
-    const y = Math.sin((to[1]-from[1])*Math.PI/180) * Math.cos(to[0]*Math.PI/180);
-    const x = Math.cos(from[0]*Math.PI/180)*Math.sin(to[0]*Math.PI/180) - Math.sin(from[0]*Math.PI/180)*Math.cos(to[0]*Math.PI/180)*Math.cos((to[1]-from[1])*Math.PI/180);
-    document.getElementById('azOutput').innerText = `Azimuth : ${((Math.atan2(y, x)*180/Math.PI)+360)%360.toFixed(2)}°`;
+    const fromArr = document.getElementById('fromCoord').value.split(',').map(Number);
+    const toArr = document.getElementById('toCoord').value.split(',').map(Number);
+    if(fromArr.length < 2 || toArr.length < 2) return;
+
+    const lat1 = fromArr[0] * Math.PI / 180;
+    const lon1 = fromArr[1] * Math.PI / 180;
+    const lat2 = toArr[0] * Math.PI / 180;
+    const lon2 = toArr[1] * Math.PI / 180;
+
+    const y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+    const brng = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    
+    document.getElementById('azOutput').innerText = "Azimuth : " + brng.toFixed(2) + " deg";
 }
 
 // ==========================================
@@ -106,42 +126,48 @@ function calculateAzimuth() {
 function extractExif() {
     const fileInput = document.getElementById('imageFile');
     const out = document.getElementById('exifOutput');
-    if (!fileInput.files[0]) return out.innerText = "Sélectionnez une image.";
+    if (!fileInput.files[0]) return out.innerText = "Selectionnez une image.";
     
-    EXIF.getData(fileInput.files[0], function() {
-        const tags = EXIF.getAllTags(this);
-        out.innerText = Object.keys(tags).length ? JSON.stringify(tags, null, 2) : "Aucun tag EXIF trouvé.";
-    });
+    if (typeof EXIF !== 'undefined') {
+        EXIF.getData(fileInput.files[0], function() {
+            const tags = EXIF.getAllTags(this);
+            out.innerText = Object.keys(tags).length ? JSON.stringify(tags, null, 2) : "Aucun tag EXIF trouve.";
+        });
+    } else {
+        out.innerText = "Erreur: Librairie EXIF non chargee.";
+    }
 }
 
 function analyzeShadow() {
     const angle = parseFloat(document.getElementById('shadowAngle').value);
     const h = parseFloat(document.getElementById('objectHeight').value);
-    document.getElementById('shadowOutput').innerText = `Ombre : ${(h / Math.tan(angle * Math.PI / 180)).toFixed(2)}m`;
+    const shadow = h / Math.tan(angle * Math.PI / 180);
+    document.getElementById('shadowOutput').innerText = "Ombre : " + shadow.toFixed(2) + "m";
 }
 
 // ==========================================
-// 5. RÉSEAU (IP & WHOIS RDAP)
+// 5. RESEAU (IP & WHOIS RDAP)
 // ==========================================
 async function ipLookup() {
     const ip = document.getElementById('ipAddress').value;
     const out = document.getElementById('ipOutput');
     out.innerText = "Recherche...";
     try {
-        const res = await fetch(`https://ipapi.co/${ip}/json/`);
-        out.innerText = JSON.stringify(await res.json(), null, 2);
+        const res = await fetch("https://ipapi.co/" + ip + "/json/");
+        const data = await res.json();
+        out.innerText = JSON.stringify(data, null, 2);
     } catch(e) { out.innerText = "Erreur API."; }
 }
 
 async function whoislookup() {
     const target = document.getElementById('whoisTarget').value;
     const out = document.getElementById('whoisOutput');
-    out.innerText = "Requête RDAP...";
+    out.innerText = "Requete RDAP...";
     try {
-        const res = await fetch(`https://rdap.org/domain/${target}`);
+        const res = await fetch("https://rdap.org/domain/" + target);
         const data = await res.json();
-        out.innerText = `Registrar: ${data.entities[data.entities.length-1].vcardArray[1][1][3]}`;
-    } catch(e) { out.innerText = "Données non disponibles en RDAP."; }
+        out.innerText = "Registrar: " + (data.entities ? data.entities[data.entities.length-1].handle : "Non trouve");
+    } catch(e) { out.innerText = "Donnees non disponibles en RDAP."; }
 }
 
 // ==========================================
@@ -156,18 +182,21 @@ function rot13Transform() {
 }
 
 function textToMorse() {
-    const map = { 'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/' };
-    document.getElementById('morseOutput').innerText = document.getElementById('morseInput').value.toUpperCase().split('').map(c => map[c] || '').join(' ');
+    const morseMap = { 'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/' };
+    document.getElementById('morseOutput').innerText = document.getElementById('morseInput').value.toUpperCase().split('').map(c => morseMap[c] || '').join(' ');
 }
 
 async function generateHash() {
     const msg = document.getElementById('hashInput').value;
-    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
-    document.getElementById('hashOutput').innerText = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const encoder = new TextEncoder();
+    const data = encoder.encode(msg);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    document.getElementById('hashOutput').innerText = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ==========================================
-// 7. MÉTADONNÉES
+// 7. METADONNEES
 // ==========================================
 function extractEmails() {
     const text = document.getElementById('emailText').value;
