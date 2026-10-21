@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nimbuste2000 – radio, informatique et OSINT</title>
+<meta name="description" content="Lycéen passionné de radio et d’informatique. Logiciel d’analyse de fréquences, OSINT, systèmes et réseaux.">
+<meta name="theme-color" content="#0e1418">
+<meta property="og:title" content="Nimbuste2000">
+<meta property="og:description" content="Radio, informatique, OSINT : mes projets et mes outils.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1418; --panel:#151d23; --line:#27333b;
+  --text:#e8e4d8; --muted:#9aa8b0;
+  --amber:#f2a93b; --signal:#7fcad6;
+  --sans:'Space Grotesk',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.7;font-size:1.05rem}
+a{color:var(--signal);text-underline-offset:3px}
+a:hover{color:var(--amber)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--amber);color:#000;padding:8px 14px;border-radius:6px;z-index:30}
+.skip:focus{left:8px}
+
+.tuner{position:sticky;top:0;z-index:20;background:rgba(14,20,24,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.tuner-in{max-width:960px;margin:0 auto;padding:10px 24px 0}
+.dial{position:relative;height:28px;
+  background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 12px) bottom/100% 10px no-repeat,
+             repeating-linear-gradient(90deg,var(--muted) 0 1px,transparent 1px 60px) bottom/100% 18px no-repeat}
+.needle{position:absolute;bottom:0;left:0;width:2px;height:28px;background:var(--amber);box-shadow:0 0 8px var(--amber);transition:left .6s cubic-bezier(.3,.8,.3,1)}
+.freq{position:absolute;top:0;left:0;font:500 .85rem var(--mono);color:var(--amber);transform:translateX(8px);transition:left .6s cubic-bezier(.3,.8,.3,1);white-space:nowrap}
+.tuner nav{display:flex;gap:4px;overflow-x:auto;padding:6px 0 8px}
+.tuner nav a{color:var(--muted);text-decoration:none;padding:4px 12px;border-radius:999px;font-size:.92rem;white-space:nowrap}
+.tuner nav a:hover{color:var(--text)}
+.tuner nav a[aria-current="true"]{color:#000;background:var(--amber)}
+
+main{max-width:960px;margin:0 auto;padding:0 24px}
+section{padding:72px 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+h1{font-size:clamp(2.6rem,9vw,5.5rem);line-height:1.02;font-weight:700;letter-spacing:-.03em}
+h2{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;letter-spacing:-.01em;margin-bottom:24px}
+h3{font-size:1.15rem;font-weight:500;margin-bottom:6px}
+p{color:var(--muted);max-width:62ch}
+.lead{font-size:1.25rem;color:var(--text);margin:20px 0 28px}
+
+.hero{padding:96px 0 72px}
+.hero h1 span{color:var(--amber)}
+.links{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border:1px solid var(--line);border-radius:8px;color:var(--text);text-decoration:none;background:var(--panel);transition:border-color .2s,transform .2s}
+.btn:hover{border-color:var(--amber);color:var(--text);transform:translateY(-2px)}
+.btn svg{width:20px;height:20px;fill:currentColor}
+
+.facts{list-style:none;margin-top:28px;display:grid;gap:10px}
+.facts li{display:flex;gap:14px;align-items:baseline;padding:12px 16px;background:var(--panel);border-left:3px solid var(--amber);border-radius:0 8px 8px 0;color:var(--text)}
+.facts small{font:500 .8rem var(--mono);color:var(--muted);min-width:7.5ch}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.cell{padding:20px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.cell p{font-size:.95rem}
+
+.tags{display:flex;flex-wrap:wrap;gap:10px;list-style:none}
+.tags li{padding:6px 14px;border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:.95rem}
+
+.projects{list-style:none;display:grid;gap:0}
+.projects li{padding:22px 0;border-top:1px solid var(--line)}
+.projects li:last-child{border-bottom:1px solid var(--line)}
+.projects h3{color:var(--signal)}
+
+.contact dl{display:grid;grid-template-columns:auto 1fr;gap:10px 20px;margin:16px 0 24px;align-items:center}
+.contact dt{color:var(--muted)}
+.copy{font:inherit;cursor:pointer;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 12px;margin-left:10px}
+.copy:hover{border-color:var(--amber)}
+footer{max-width:960px;margin:0 auto;padding:32px 24px 56px;color:var(--muted);font-size:.9rem}
+
+h2{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h2 .st{font:500 .8rem var(--mono);color:var(--amber);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.cell,.facts li,.tags li,.btn{transition:border-color .2s,background .2s,transform .2s}
+.cell:hover{border-color:var(--amber);transform:translateY(-3px)}
+.tags li:hover{border-color:var(--signal);background:var(--panel)}
+.projects li{display:grid;grid-template-columns:1fr;gap:4px;padding:24px 20px;border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:14px}
+.projects li:last-child{border-bottom:1px solid var(--line);margin-bottom:0}
+.projects li:hover{border-color:var(--signal)}
+.contact .card{padding:28px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.contact dl{margin-bottom:0}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);background:var(--amber);color:#000;padding:8px 16px;border-radius:8px;font-weight:500;opacity:0;pointer-events:none;transition:.25s;z-index:40}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:560px){section{padding:52px 0}.hero{padding:56px 0 48px}
+.hero h1,.hero .lead,.hero .links{animation:in .7s ease both}
+.hero .lead{animation-delay:.12s}.hero .links{animation-delay:.24s}
+@keyframes in{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+
+<header class="tuner">
+  <div class="tuner-in">
+    <div class="dial" aria-hidden="true">
+      <span class="freq" id="freq">88.0 MHz</span>
+      <span class="needle" id="needle"></span>
+    </div>
+    <nav aria-label="Sections">
+      <a href="#accueil" data-f="88.0">Accueil</a>
+      <a href="#apropos" data-f="92.6">À propos</a>
+      <a href="#competences" data-f="96.9">Compétences</a>
+      <a href="#projets" data-f="101.5">Projets</a>
+      <a href="#contact" data-f="106.2">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="contenu">
+  <section id="accueil" class="hero">
+    <h1>Nimbuste<span>2000</span></h1>
+    <p class="lead">Lycéen en première. Je construis des outils autour de la radio, des réseaux et de la recherche d’informations.</p>
+    <div class="links">
+      <a class="btn" href="https://github.com/nimbuste2000" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a class="btn" href="#contact">Me contacter</a>
+    </div>
+  </section>
+
+  <section id="apropos">
+    <h2>À propos <span class="st" aria-hidden="true">92.6 MHz</span></h2>
+    <p>Passionné par la radio et l’informatique depuis quelques années, j’aime bidouiller, tester et comprendre comment les choses fonctionnent vraiment.</p>
+    <ul class="facts">
+      <li><small>Concours</small> Participant à Hack Ton Lycée</li>
+      <li><small>2025/2026</small> Top 5 à Hack Ton Lycée</li>
+      <li><small>Stage</small> Stagiaire à Europe 2</li>
+      <li><small>2026/2027</small> Top 30 à Hack Ton Lycée</li>
+    </ul>
+  </section>
+
+  <section id="competences">
+    <h2>Compétences et outils <span class="st" aria-hidden="true">96.9 MHz</span></h2>
+    <div class="grid">
+      <div class="cell"><h3>Développement web</h3><p>HTML et CSS. Je crée des sites comme celui-ci.</p></div>
+      <div class="cell"><h3>Systèmes</h3><p>Windows et Linux, je me débrouille sur les deux.</p></div>
+      <div class="cell"><h3>OSINT</h3><p>Recherche d’informations en sources ouvertes.</p></div>
+      <div class="cell"><h3>Réseaux</h3><p>Configuration et compréhension des réseaux.</p></div>
+    </div>
+    <h3 style="margin:36px 0 14px">Outils que j’utilise</h3>
+    <ul class="tags">
+      <li>HTML/CSS</li><li>Linux</li><li>Windows</li><li>Git</li><li>VS Code</li>
+      <li>OSINT Tools</li><li>Zenon</li><li>Proxmox &amp; ESXi</li><li>Kali</li>
+    </ul>
+  </section>
+
+  <section id="projets">
+    <h2>Projets <span class="st" aria-hidden="true">101.5 MHz</span></h2>
+    <p style="margin-bottom:28px">Certains pour comprendre notre monde, d’autres juste pour le plaisir.</p>
+    <ul class="projects">
+      <li><h3>Logiciel de radio</h3><p>Un logiciel pour écouter et analyser les fréquences radio.</p></li>
+      <li><h3>Apprentissage de la création d’OS</h3><p>Un projet un peu fou : comprendre comment fonctionne un système d’exploitation de A à Z.</p></li>
+      <li><h3>Outils OSINT perso</h3><p>Des scripts et outils pour faciliter les recherches d’informations en ligne.</p></li>
+    </ul>
+  </section>
+
+  <section id="contact" class="contact">
+    <h2>Me contacter <span class="st" aria-hidden="true">106.2 MHz</span></h2>
+    <p style="margin-bottom:20px">Toujours disponible pour parler radio, informatique, projets ou simplement discuter.</p>
+    <div class="card"><dl>
+      <dt>Email</dt>
+      <dd><a href="mailto:nimbuste2000@gmail.com">nimbuste2000@gmail.com</a></dd>
+      <dt>Discord</dt>
+      <dd><span id="discord">Nimbuste2000</span><button class="copy" type="button" id="copy">Copier</button></dd>
+    </dl></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<footer>© <span id="year">2026</span> Nimbuste2000</footer>
+
+<script>
+(function(){
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  var links = [].slice.call(document.querySelectorAll('.tuner nav a'));
+  var needle = document.getElementById('needle'), freq = document.getElementById('freq');
+  var dial = document.querySelector('.dial');
+  function tune(id){
+    links.forEach(function(a){
+      var on = a.getAttribute('href') === '#' + id;
+      if(on){
+        a.setAttribute('aria-current','true');
+        var f = parseFloat(a.dataset.f);
+        var pct = (f - 88) / (108 - 88);
+        var x = pct * (dial.clientWidth - 2);
+        needle.style.left = x + 'px';
+        freq.style.left = Math.min(x, dial.clientWidth - 90) + 'px';
+        freq.textContent = f.toFixed(1) + ' MHz';
+        a.scrollIntoView({block:'nearest',inline:'nearest'});
+      } else a.removeAttribute('aria-current');
+    });
+  }
+  var current = 'accueil';
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ current = e.target.id; tune(current); } });
+    },{rootMargin:'-35% 0px -55% 0px'});
+    document.querySelectorAll('main section').forEach(function(s){ io.observe(s); });
+  }
+  window.addEventListener('resize', function(){ tune(current); });
+  tune(current);
+
+  var btn = document.getElementById('copy');
+  btn.addEventListener('click', function(){
+    var txt = document.getElementById('discord').textContent;
+    var t = document.getElementById('toast');
+    var done = function(){ btn.textContent = 'Copié'; t.textContent = 'Pseudo Discord copié'; t.classList.add('on');
+      setTimeout(function(){ btn.textContent = 'Copier'; t.classList.remove('on'); }, 1800); };
+    if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(done, function(){}); }
+  });
+})();
+</script>
+</body>
+</html>
