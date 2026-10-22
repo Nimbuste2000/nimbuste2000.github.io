@@ -91,10 +91,16 @@ h2 .st{font:500 .8rem var(--mono);color:var(--amber);border:1px solid var(--line
 .contact dl{margin-bottom:0}
 .toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);background:var(--amber);color:#000;padding:8px 16px;border-radius:8px;font-weight:500;opacity:0;pointer-events:none;transition:.25s;z-index:40}
 .toast.on{opacity:1;transform:translate(-50%,0)}
-@media (max-width:560px){section{padding:52px 0}.hero{padding:56px 0 48px}
+
 .hero h1,.hero .lead,.hero .links{animation:in .7s ease both}
-.hero .lead{animation-delay:.12s}.hero .links{animation-delay:.24s}
+.hero .lead{animation-delay:.12s}
+.hero .links{animation-delay:.24s}
 @keyframes in{from{opacity:0;transform:translateY(14px)}}
+
+@media (max-width:560px){
+  section{padding:52px 0}
+  .hero{padding:56px 0 48px}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
@@ -187,9 +193,16 @@ h2 .st{font:500 .8rem var(--mono);color:var(--amber);border:1px solid var(--line
 (function(){
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  var links = [].slice.call(document.querySelectorAll('.tuner nav a'));
+  var nav = document.querySelector('.tuner nav');
+  var links = [].slice.call(nav.querySelectorAll('a'));
   var needle = document.getElementById('needle'), freq = document.getElementById('freq');
   var dial = document.querySelector('.dial');
+
+  function centerLink(a){
+    var left = a.getBoundingClientRect().left - nav.getBoundingClientRect().left + nav.scrollLeft;
+    nav.scrollTo({left: left - (nav.clientWidth - a.offsetWidth) / 2, behavior: 'smooth'});
+  }
+
   function tune(id){
     links.forEach(function(a){
       var on = a.getAttribute('href') === '#' + id;
@@ -201,10 +214,11 @@ h2 .st{font:500 .8rem var(--mono);color:var(--amber);border:1px solid var(--line
         needle.style.left = x + 'px';
         freq.style.left = Math.min(x, dial.clientWidth - 90) + 'px';
         freq.textContent = f.toFixed(1) + ' MHz';
-        a.scrollIntoView({block:'nearest',inline:'nearest'});
+        centerLink(a);
       } else a.removeAttribute('aria-current');
     });
   }
+
   var current = 'accueil';
   if('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(entries){
